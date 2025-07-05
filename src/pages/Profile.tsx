@@ -176,7 +176,28 @@ export default function ProfilePage() {
 
             <AnimatedCard glowColor="purple">
               <h3 className="text-lg sm:text-xl font-bold text-purple-600 dark:text-purple-400 font-mono mb-4 transition-colors duration-300">Experience</h3>
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm sm:text-base transition-colors duration-300">{displayProfile.experience}</p>
+              <div className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm sm:text-base transition-colors duration-300">
+                {displayProfile.experience.split('\n\n').map((section, index) => {
+                  const lines = section.split('\n');
+                  const title = lines[0];
+                  const details = lines.slice(1);
+                  
+                  return (
+                    <div key={index} className="mb-6 last:mb-0">
+                      <h4 className="font-semibold text-gray-900 dark:text-white mb-2 text-sm sm:text-base">
+                        {title}
+                      </h4>
+                      <ul className="space-y-1">
+                        {details.map((detail, detailIndex) => (
+                          <li key={detailIndex} className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 pl-2">
+                            {detail}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })}
+              </div>
             </AnimatedCard>
 
             <AnimatedCard>
