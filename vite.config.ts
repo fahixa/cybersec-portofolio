@@ -6,8 +6,8 @@ export default defineConfig({
   plugins: [react()],
   define: {
     // Remove console.log in production
-    'console.log': import.meta.env.PROD ? '() => {}' : 'console.log',
-    'console.debug': import.meta.env.PROD ? '() => {}' : 'console.debug',
+    'console.log': process.env.NODE_ENV === 'production' ? '() => {}' : 'console.log',
+    'console.debug': process.env.NODE_ENV === 'production' ? '() => {}' : 'console.debug',
   },
   optimizeDeps: {
     exclude: ['lucide-react'],
