@@ -274,22 +274,6 @@ export default function ProfilePage() {
             )}
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4 order-3 lg:order-3">
-              <AnimatedCard className="text-center">
-                <div className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600 dark:text-green-400 font-mono mb-1 transition-colors duration-300">50+</div>
-                <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-mono transition-colors duration-300">CTF Wins</div>
-              </AnimatedCard>
-              <AnimatedCard className="text-center" glowColor="cyan">
-                <div className="text-lg sm:text-xl lg:text-2xl font-bold text-cyan-600 dark:text-cyan-400 font-mono mb-1 transition-colors duration-300">25+</div>
-                <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-mono transition-colors duration-300">Bug Bounties</div>
-              </AnimatedCard>
-              <AnimatedCard className="text-center" glowColor="purple">
-                <div className="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600 dark:text-purple-400 font-mono mb-1 transition-colors duration-300">100+</div>
-                <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-mono transition-colors duration-300">Vulnerabilities</div>
-              </AnimatedCard>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
