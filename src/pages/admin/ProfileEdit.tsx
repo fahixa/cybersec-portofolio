@@ -19,7 +19,7 @@ export default function ProfileEdit() {
     experience: '',
     github_url: '',
     linkedin_url: '',
-    twitter_url: '',
+    email: '',
     certifications: [] as Certification[]
   });
 
@@ -80,7 +80,7 @@ export default function ProfileEdit() {
           experience: data.experience || '',
           github_url: data.github_url || '',
           linkedin_url: data.linkedin_url || '',
-          twitter_url: data.twitter_url || '',
+          email: 'fakhrityhikmawan@gmail.com', // Set default email
           certifications: certificationsData || []
         });
       }
@@ -112,6 +112,12 @@ export default function ProfileEdit() {
     }
   };
 
+  // Email validation
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   // Validate date format
   const isValidDate = (dateString: string): boolean => {
     if (!dateString) return true; // Empty dates are allowed for expiry
@@ -131,8 +137,8 @@ export default function ProfileEdit() {
       if (formData.linkedin_url && !isValidUrl(formData.linkedin_url)) {
         throw new Error('Invalid LinkedIn URL');
       }
-      if (formData.twitter_url && !isValidUrl(formData.twitter_url)) {
-        throw new Error('Invalid Twitter URL');
+      if (formData.email && !isValidEmail(formData.email)) {
+        throw new Error('Invalid email address');
       }
 
       // Sanitize all inputs
@@ -143,7 +149,8 @@ export default function ProfileEdit() {
         experience: sanitizeInput(formData.experience),
         github_url: formData.github_url.trim(),
         linkedin_url: formData.linkedin_url.trim(),
-        twitter_url: formData.twitter_url.trim(),
+        // Keep twitter_url for backward compatibility but don't update it
+        twitter_url: '', // Clear any existing twitter URL
         skills: formData.skills
       };
 
@@ -461,15 +468,15 @@ export default function ProfileEdit() {
 
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">
-                  Twitter URL
+                  Email Address
                 </label>
                 <input
-                  type="url"
-                  value={formData.twitter_url}
-                  onChange={(e) => setFormData({ ...formData, twitter_url: e.target.value.trim() })}
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: sanitizeInput(e.target.value.trim()) })}
                   className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 text-sm sm:text-base transition-all duration-300"
-                  placeholder="https://twitter.com/username"
-                  maxLength={200}
+                  placeholder="your.email@gmail.com"
+                  maxLength={254}
                 />
               </div>
             </div>
