@@ -68,8 +68,7 @@ export class ProfileSetup {
           'Nmap'
         ],
         github_url: 'https://github.com/fakhrityhikmawan',
-        linkedin_url: 'https://linkedin.com/in/fakhrityhikmawan',
-        twitter_url: 'https://twitter.com/fakhrityhikmawan'
+        linkedin_url: 'https://linkedin.com/in/fakhrityhikmawan'
       };
 
       const profile = await DatabaseService.upsertProfile(defaultProfile);

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { DatabaseService } from '../lib/supabase';
 import { apiCache } from '../lib/apiCache';
 
-interface UseDataFetchingOptions<T> {
+interface UseDataFetchingOptions {
   cacheKey?: string;
   cacheTTL?: number;
   enabled?: boolean;
@@ -21,7 +21,7 @@ interface UseDataFetchingResult<T> {
 export function useDataFetching<T>(
   fetchFn: () => Promise<T>,
   dependencies: any[] = [],
-  options: UseDataFetchingOptions<T> = {}
+  options: UseDataFetchingOptions = {}
 ): UseDataFetchingResult<T> {
   const {
     cacheKey,

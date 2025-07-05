@@ -84,7 +84,7 @@ class PerformanceMonitor {
   }
 
   private isSlowMetric(name: string, value: number): boolean {
-    const thresholds = {
+    const thresholds: Record<string, number> = {
       'api_request_duration': 2000, // 2 seconds
       'page_load_time': 3000,       // 3 seconds
       'dom_content_loaded': 1500,   // 1.5 seconds
