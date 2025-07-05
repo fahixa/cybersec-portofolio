@@ -15,12 +15,19 @@ export default function ProfilePage() {
 
   const loadProfile = async () => {
     try {
+      // Test connection first
+      const connectionOk = await SupabaseService.testConnection();
+      if (!connectionOk) {
+        console.warn('Supabase connection failed');
+        setLoading(false);
+        return;
+      }
+      
       const profileData = await SupabaseService.getProfile();
       setProfile(profileData);
       
       // Load certifications if profile exists
       if (profileData) {
-        // Note: Certifications are loaded via the profile relation
         setCertifications(profileData.certifications || []);
       }
     } catch (error) {

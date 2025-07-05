@@ -23,6 +23,15 @@ export default function Writeups() {
 
   const loadWriteups = async () => {
     try {
+      // Test connection first
+      const connectionOk = await SupabaseService.testConnection();
+      if (!connectionOk) {
+        console.warn('Supabase connection failed');
+        setWriteups([]);
+        setLoading(false);
+        return;
+      }
+      
       console.log('Loading writeups from Supabase...');
       const data = await SupabaseService.getWriteups({ published: true });
       console.log('Writeups loaded:', data);

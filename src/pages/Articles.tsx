@@ -23,6 +23,15 @@ export default function Articles() {
 
   const loadArticles = async () => {
     try {
+      // Test connection first
+      const connectionOk = await SupabaseService.testConnection();
+      if (!connectionOk) {
+        console.warn('Supabase connection failed');
+        setArticles([]);
+        setLoading(false);
+        return;
+      }
+      
       console.log('Loading articles from Supabase...');
       const data = await SupabaseService.getArticles({ published: true });
       console.log('Articles loaded:', data);

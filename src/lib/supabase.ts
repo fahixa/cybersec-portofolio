@@ -6,41 +6,51 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables. Please check your .env file.');
+  console.error('Missing Supabase environment variables');
+  console.log('VITE_SUPABASE_URL:', supabaseUrl ? 'Set' : 'Missing');
+  console.log('VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'Set' : 'Missing');
 }
 
 // Validate URL format
-try {
-  new URL(supabaseUrl);
-} catch {
-  throw new Error('Invalid Supabase URL format');
+if (supabaseUrl) {
+  try {
+    new URL(supabaseUrl);
+  } catch {
+    console.error('Invalid Supabase URL format:', supabaseUrl);
+  }
 }
 
-// Create Supabase client with security configurations
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    flowType: 'pkce', // Use PKCE flow for better security
-  },
-  db: {
-    schema: 'public',
-  },
-  global: {
-    headers: {
-      'X-Client-Info': 'cybersec-portfolio@1.0.0',
+// Create Supabase client with enhanced error handling
+export const supabase = createClient<Database>(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder-key',
+  {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+      flowType: 'pkce',
     },
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 10, // Rate limiting
+    db: {
+      schema: 'public',
     },
-  },
-});
+    global: {
+      headers: {
+        'X-Client-Info': 'cybersec-portfolio@1.0.0',
+      },
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 10,
+      },
+    },
+  }
+);
 
 // Types for better type safety
-export type Profile = Database['public']['Tables']['profiles']['Row'];
+export type Profile = Database['public']['Tables']['profiles']['Row'] & {
+  certifications?: Certification[];
+};
 export type ProfileInsert = Database['public']['Tables']['profiles']['Insert'];
 export type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 
@@ -56,8 +66,38 @@ export type Article = Database['public']['Tables']['articles']['Row'];
 export type ArticleInsert = Database['public']['Tables']['articles']['Insert'];
 export type ArticleUpdate = Database['public']['Tables']['articles']['Update'];
 
+// Enhanced error handling
+class SupabaseError extends Error {
+  constructor(message: string, public originalError?: any) {
+    super(message);
+    this.name = 'SupabaseError';
+  }
+}
+
 // Utility functions for secure data operations
 export class SupabaseService {
+  // Connection test
+  static async testConnection(): Promise<boolean> {
+    try {
+      console.log('Testing Supabase connection...');
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('count')
+        .limit(1);
+      
+      if (error) {
+        console.error('Connection test failed:', error);
+        return false;
+      }
+      
+      console.log('Supabase connection successful');
+      return true;
+    } catch (error) {
+      console.error('Connection test error:', error);
+      return false;
+    }
+  }
+
   // Input sanitization helper
   private static sanitizeString(input: string): string {
     return input
@@ -93,35 +133,30 @@ export class SupabaseService {
   static async getProfile(userId?: string): Promise<Profile | null> {
     try {
       console.log('Fetching profile from Supabase...');
-      const query = supabase
+      
+      let query = supabase
         .from('profiles')
-        .select('*')
-        .limit(1);
+        .select(`
+          *,
+          certifications (*)
+        `);
 
       if (userId) {
-        query.eq('user_id', userId);
+        query = query.eq('user_id', userId);
       }
 
-      const { data, error } = await query.single();
+      const { data, error } = await query.limit(1).single();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
+        if (error.code === 'PGRST116') {
+          console.log('No profile found');
+          return null;
+        }
         console.error('Profile fetch error:', error);
-        return null;
+        throw new SupabaseError('Failed to fetch profile', error);
       }
 
-      // Load certifications separately
-      if (data) {
-        const { data: certifications } = await supabase
-          .from('certifications')
-          .select('*')
-          .eq('profile_id', data.id);
-        
-        return {
-          ...data,
-          certifications: certifications || []
-        };
-      }
-
+      console.log('Profile loaded successfully:', data?.name);
       return data;
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -160,7 +195,7 @@ export class SupabaseService {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw new SupabaseError('Failed to upsert profile', error);
       return data;
     } catch (error) {
       console.error('Error upserting profile:', error);
@@ -177,6 +212,8 @@ export class SupabaseService {
     search?: string;
   } = {}): Promise<Writeup[]> {
     try {
+      console.log('Fetching writeups from Supabase with options:', options);
+      
       let query = supabase
         .from('writeups')
         .select('*')
@@ -192,7 +229,8 @@ export class SupabaseService {
 
       if (options.search) {
         const sanitizedSearch = this.sanitizeString(options.search);
-        query = query.textSearch('title,excerpt,content', sanitizedSearch);
+        // Use ilike for case-insensitive search
+        query = query.or(`title.ilike.%${sanitizedSearch}%,excerpt.ilike.%${sanitizedSearch}%,content.ilike.%${sanitizedSearch}%`);
       }
 
       if (options.limit) {
@@ -205,7 +243,12 @@ export class SupabaseService {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Writeups fetch error:', error);
+        throw new SupabaseError('Failed to fetch writeups', error);
+      }
+
+      console.log(`Fetched ${data?.length || 0} writeups`);
       return data || [];
     } catch (error) {
       console.error('Error fetching writeups:', error);
@@ -215,6 +258,7 @@ export class SupabaseService {
 
   static async getWriteupBySlug(slug: string): Promise<Writeup | null> {
     try {
+      console.log('Fetching writeup by slug:', slug);
       const sanitizedSlug = this.sanitizeString(slug);
       
       const { data, error } = await supabase
@@ -224,10 +268,15 @@ export class SupabaseService {
         .eq('published', true)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        throw error;
+      if (error) {
+        if (error.code === 'PGRST116') {
+          console.log('Writeup not found for slug:', slug);
+          return null;
+        }
+        throw new SupabaseError('Failed to fetch writeup', error);
       }
 
+      console.log('Writeup loaded successfully:', data?.title);
       return data;
     } catch (error) {
       console.error('Error fetching writeup by slug:', error);
@@ -256,7 +305,7 @@ export class SupabaseService {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw new SupabaseError('Failed to upsert writeup', error);
       return data;
     } catch (error) {
       console.error('Error upserting writeup:', error);
@@ -271,7 +320,7 @@ export class SupabaseService {
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) throw new SupabaseError('Failed to delete writeup', error);
       return true;
     } catch (error) {
       console.error('Error deleting writeup:', error);
@@ -289,6 +338,8 @@ export class SupabaseService {
     search?: string;
   } = {}): Promise<Article[]> {
     try {
+      console.log('Fetching articles from Supabase with options:', options);
+      
       let query = supabase
         .from('articles')
         .select('*')
@@ -308,7 +359,8 @@ export class SupabaseService {
 
       if (options.search) {
         const sanitizedSearch = this.sanitizeString(options.search);
-        query = query.textSearch('title,excerpt,content', sanitizedSearch);
+        // Use ilike for case-insensitive search
+        query = query.or(`title.ilike.%${sanitizedSearch}%,excerpt.ilike.%${sanitizedSearch}%,content.ilike.%${sanitizedSearch}%`);
       }
 
       if (options.limit) {
@@ -321,7 +373,12 @@ export class SupabaseService {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Articles fetch error:', error);
+        throw new SupabaseError('Failed to fetch articles', error);
+      }
+
+      console.log(`Fetched ${data?.length || 0} articles`);
       return data || [];
     } catch (error) {
       console.error('Error fetching articles:', error);
@@ -331,6 +388,7 @@ export class SupabaseService {
 
   static async getArticleBySlug(slug: string): Promise<Article | null> {
     try {
+      console.log('Fetching article by slug:', slug);
       const sanitizedSlug = this.sanitizeString(slug);
       
       const { data, error } = await supabase
@@ -340,10 +398,15 @@ export class SupabaseService {
         .eq('published', true)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        throw error;
+      if (error) {
+        if (error.code === 'PGRST116') {
+          console.log('Article not found for slug:', slug);
+          return null;
+        }
+        throw new SupabaseError('Failed to fetch article', error);
       }
 
+      console.log('Article loaded successfully:', data?.title);
       return data;
     } catch (error) {
       console.error('Error fetching article by slug:', error);
@@ -377,7 +440,7 @@ export class SupabaseService {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw new SupabaseError('Failed to upsert article', error);
       return data;
     } catch (error) {
       console.error('Error upserting article:', error);
@@ -392,7 +455,7 @@ export class SupabaseService {
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) throw new SupabaseError('Failed to delete article', error);
       return true;
     } catch (error) {
       console.error('Error deleting article:', error);
@@ -424,7 +487,7 @@ export class SupabaseService {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw new SupabaseError('Failed to upsert certification', error);
       return data;
     } catch (error) {
       console.error('Error upserting certification:', error);
@@ -439,7 +502,7 @@ export class SupabaseService {
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) throw new SupabaseError('Failed to delete certification', error);
       return true;
     } catch (error) {
       console.error('Error deleting certification:', error);
