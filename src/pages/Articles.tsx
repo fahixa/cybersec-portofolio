@@ -23,7 +23,7 @@ export default function Articles() {
   }, [articlesData, filter, searchQuery]);
 
   const filterArticles = () => {
-    let filtered = articlesData;
+    let filtered = articlesData || [];
 
     // Apply category filter
     if (filter !== 'all') {
@@ -91,8 +91,8 @@ export default function Articles() {
     }
   };
 
-  const featuredArticles = filteredArticles.filter(article => article.featured);
-  const regularArticles = filteredArticles.filter(article => !article.featured);
+  const featuredArticles = (filteredArticles || []).filter(article => article.featured);
+  const regularArticles = (filteredArticles || []).filter(article => !article.featured);
 
   if (loading) {
     return (
