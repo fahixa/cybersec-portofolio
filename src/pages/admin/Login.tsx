@@ -31,10 +31,13 @@ export default function Login() {
     setLoading(true);
     setError('');
 
+    let sanitizedEmail = '';
+    let sanitizedPassword = '';
+
     try {
       // Validate and sanitize inputs
-      const sanitizedEmail = SecurityUtils.sanitizeInput(email);
-      const sanitizedPassword = password.slice(0, 100); // Don't sanitize password content, just limit length
+      sanitizedEmail = SecurityUtils.sanitizeInput(email);
+      sanitizedPassword = password.slice(0, 100); // Don't sanitize password content, just limit length
 
       if (!sanitizedEmail || !sanitizedPassword) {
         throw new Error('Email and password are required');
