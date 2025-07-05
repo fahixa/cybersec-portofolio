@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Plus, Trash2, Award, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Award, ExternalLink, X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase, type Certification } from '../../lib/supabase';
 import GlitchText from '../../components/GlitchText';
@@ -10,6 +10,7 @@ export default function ProfileEdit() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     title: '',
@@ -32,6 +33,7 @@ export default function ProfileEdit() {
     logo_url: ''
   });
   const [showAddCert, setShowAddCert] = useState(false);
+  const [newSkill, setNewSkill] = useState('');
 
   useEffect(() => {
     if (!user || !isSessionValid()) {
@@ -170,10 +172,19 @@ export default function ProfileEdit() {
     }
   };
 
-  const handleSkillsChange = (value: string) => {
-    const sanitizedValue = sanitizeInput(value);
-    const skills = sanitizedValue.split(',').map(skill => skill.trim()).filter(Boolean);
-    setFormData({ ...formData, skills });
+  const addSkill = () => {
+    const sanitizedSkill = sanitizeInput(newSkill.trim());
+    if (sanitizedSkill && !formData.skills.includes(sanitizedSkill)) {
+      setFormData({ ...formData, skills: [...formData.skills, sanitizedSkill] });
+      setNewSkill('');
+    }
+  };
+
+  const removeSkill = (skillToRemove: string) => {
+    setFormData({
+      ...formData,
+      skills: formData.skills.filter(skill => skill !== skillToRemove)
+    });
   };
 
   const addCertification = () => {
@@ -203,12 +214,15 @@ export default function ProfileEdit() {
 
     const certification: Certification = {
       id: Date.now().toString(),
+      profile_id: '',
       name: sanitizeInput(newCert.name),
       issuer: sanitizeInput(newCert.issuer),
       validation_url: newCert.validation_url.trim(),
       issue_date: newCert.issue_date,
       expiry_date: newCert.expiry_date || null,
-      logo_url: newCert.logo_url.trim()
+      logo_url: newCert.logo_url.trim(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
     setFormData({
@@ -256,49 +270,54 @@ export default function ProfileEdit() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-white transition-colors duration-300">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div className="flex flex-col sm:flex-row sm:items-center mb-6 sm:mb-8 gap-4">
-          <button
-            onClick={() => navigate('/authorize/dashboard')}
-            className="flex items-center text-blue-600 dark:text-green-400 hover:text-blue-500 dark:hover:text-green-300 font-mono self-start transition-colors duration-300"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            <span className="text-sm sm:text-base">Back to Dashboard</span>
-          </button>
-          <h1 className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-green-400 font-mono transition-colors duration-300">
-            <GlitchText text="EDIT PROFILE" />
-          </h1>
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
+        {/* Mobile-First Header */}
+        <div className="flex flex-col space-y-4 mb-6 lg:mb-8">
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => navigate('/authorize/dashboard')}
+              className="flex items-center space-x-2 text-blue-600 dark:text-green-400 hover:text-blue-500 dark:hover:text-green-300 transition-colors p-2 -ml-2 rounded-lg hover:bg-blue-50 dark:hover:bg-green-500/10"
+            >
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="text-sm sm:text-base font-medium">Back</span>
+            </button>
+            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600 dark:text-green-400 font-mono transition-colors duration-300">
+              <GlitchText text="EDIT PROFILE" />
+            </h1>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
           {/* Basic Information */}
-          <div className="bg-white/95 dark:bg-gray-900/50 border border-gray-200 dark:border-green-500/30 rounded-lg p-4 sm:p-8 shadow-lg dark:shadow-2xl transition-colors duration-300">
-            <h2 className="text-lg sm:text-xl font-bold text-blue-600 dark:text-green-400 font-mono mb-4 sm:mb-6 transition-colors duration-300">Basic Information</h2>
+          <div className="bg-white/95 dark:bg-gray-900/50 border border-gray-200 dark:border-green-500/30 rounded-lg p-4 sm:p-6 lg:p-8 shadow-lg dark:shadow-2xl transition-colors duration-300">
+            <h2 className="text-lg sm:text-xl font-bold text-blue-600 dark:text-green-400 font-mono mb-4 sm:mb-6 transition-colors duration-300">
+              Basic Information
+            </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">
                   Name *
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: sanitizeInput(e.target.value) })}
-                  className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 text-sm sm:text-base transition-colors duration-300"
+                  className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 text-sm sm:text-base transition-all duration-300"
                   maxLength={100}
                   required
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">
                   Title *
                 </label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: sanitizeInput(e.target.value) })}
-                  className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 text-sm sm:text-base transition-colors duration-300"
+                  className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 text-sm sm:text-base transition-all duration-300"
                   placeholder="Cybersecurity Specialist"
                   maxLength={200}
                   required
@@ -306,85 +325,117 @@ export default function ProfileEdit() {
               </div>
             </div>
 
-            <div className="mt-4 sm:mt-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
+            <div className="mt-4 sm:mt-6 space-y-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">
                 Bio *
               </label>
               <textarea
                 value={formData.bio}
                 onChange={(e) => setFormData({ ...formData, bio: sanitizeInput(e.target.value) })}
                 rows={4}
-                className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 text-sm sm:text-base transition-colors duration-300"
+                className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 text-sm sm:text-base transition-all duration-300"
                 maxLength={1000}
                 required
               />
             </div>
 
-            <div className="mt-4 sm:mt-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
-                Skills (comma-separated)
+            {/* Skills Section */}
+            <div className="mt-4 sm:mt-6 space-y-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">
+                Skills
               </label>
-              <input
-                type="text"
-                value={formData.skills.join(', ')}
-                onChange={(e) => handleSkillsChange(e.target.value)}
-                className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 text-sm sm:text-base transition-colors duration-300"
-                placeholder="Web Security, Penetration Testing, Bug Bounty"
-                maxLength={500}
-              />
+              
+              {/* Add new skill */}
+              <div className="flex space-x-2 mb-4">
+                <input
+                  type="text"
+                  value={newSkill}
+                  onChange={(e) => setNewSkill(sanitizeInput(e.target.value))}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
+                  placeholder="Add skill..."
+                  className="flex-1 px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 text-sm transition-all duration-300"
+                  maxLength={50}
+                />
+                <button
+                  type="button"
+                  onClick={addSkill}
+                  className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex-shrink-0"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Existing skills */}
+              <div className="flex flex-wrap gap-2">
+                {formData.skills.map((skill, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-3 py-1 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600/30 rounded-full text-sm text-gray-700 dark:text-gray-300 group transition-colors duration-300"
+                  >
+                    {skill}
+                    <button
+                      type="button"
+                      onClick={() => removeSkill(skill)}
+                      className="ml-2 text-gray-500 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
             </div>
 
-            <div className="mt-4 sm:mt-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
+            <div className="mt-4 sm:mt-6 space-y-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">
                 Experience
               </label>
               <textarea
                 value={formData.experience}
                 onChange={(e) => setFormData({ ...formData, experience: sanitizeInput(e.target.value) })}
                 rows={3}
-                className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 text-sm sm:text-base transition-colors duration-300"
+                className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 text-sm sm:text-base transition-all duration-300"
                 maxLength={1000}
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mt-4 sm:mt-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">
                   GitHub URL
                 </label>
                 <input
                   type="url"
                   value={formData.github_url}
                   onChange={(e) => setFormData({ ...formData, github_url: e.target.value.trim() })}
-                  className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 text-sm sm:text-base transition-colors duration-300"
+                  className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 text-sm sm:text-base transition-all duration-300"
                   placeholder="https://github.com/username"
                   maxLength={200}
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">
                   LinkedIn URL
                 </label>
                 <input
                   type="url"
                   value={formData.linkedin_url}
                   onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value.trim() })}
-                  className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 text-sm sm:text-base transition-colors duration-300"
+                  className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 text-sm sm:text-base transition-all duration-300"
                   placeholder="https://linkedin.com/in/username"
                   maxLength={200}
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">
                   Twitter URL
                 </label>
                 <input
                   type="url"
                   value={formData.twitter_url}
                   onChange={(e) => setFormData({ ...formData, twitter_url: e.target.value.trim() })}
-                  className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 text-sm sm:text-base transition-colors duration-300"
+                  className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 text-sm sm:text-base transition-all duration-300"
                   placeholder="https://twitter.com/username"
                   maxLength={200}
                 />
@@ -393,11 +444,13 @@ export default function ProfileEdit() {
           </div>
 
           {/* Certifications Section */}
-          <div className="bg-white/95 dark:bg-gray-900/50 border border-gray-200 dark:border-cyan-500/30 rounded-lg p-4 sm:p-8 shadow-lg dark:shadow-2xl transition-colors duration-300">
+          <div className="bg-white/95 dark:bg-gray-900/50 border border-gray-200 dark:border-cyan-500/30 rounded-lg p-4 sm:p-6 lg:p-8 shadow-lg dark:shadow-2xl transition-colors duration-300">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-4">
               <div className="flex items-center">
                 <Award className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-600 dark:text-cyan-400 mr-2 sm:mr-3 transition-colors duration-300" />
-                <h2 className="text-lg sm:text-xl font-bold text-cyan-600 dark:text-cyan-400 font-mono transition-colors duration-300">Certifications</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-cyan-600 dark:text-cyan-400 font-mono transition-colors duration-300">
+                  Certifications
+                </h2>
               </div>
               <button
                 type="button"
@@ -412,80 +465,82 @@ export default function ProfileEdit() {
             {/* Add New Certification Form */}
             {showAddCert && (
               <div className="bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-cyan-500/30 rounded-lg p-4 sm:p-6 mb-6 transition-colors duration-300">
-                <h3 className="text-base sm:text-lg font-bold text-cyan-600 dark:text-cyan-400 mb-4 transition-colors duration-300">Add New Certification</h3>
+                <h3 className="text-base sm:text-lg font-bold text-cyan-600 dark:text-cyan-400 mb-4 transition-colors duration-300">
+                  Add New Certification
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">
                       Certification Name *
                     </label>
                     <input
                       type="text"
                       value={newCert.name}
                       onChange={(e) => setNewCert({ ...newCert, name: e.target.value })}
-                      className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 dark:focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 dark:focus:ring-cyan-500 text-sm transition-colors duration-300"
+                      className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 dark:focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 dark:focus:ring-cyan-500 text-sm transition-all duration-300"
                       placeholder="e.g., Certified Ethical Hacker (CEH)"
                       maxLength={200}
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">
                       Issuer *
                     </label>
                     <input
                       type="text"
                       value={newCert.issuer}
                       onChange={(e) => setNewCert({ ...newCert, issuer: e.target.value })}
-                      className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 dark:focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 dark:focus:ring-cyan-500 text-sm transition-colors duration-300"
+                      className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 dark:focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 dark:focus:ring-cyan-500 text-sm transition-all duration-300"
                       placeholder="e.g., EC-Council"
                       maxLength={100}
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">
                       Validation URL *
                     </label>
                     <input
                       type="url"
                       value={newCert.validation_url}
                       onChange={(e) => setNewCert({ ...newCert, validation_url: e.target.value })}
-                      className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 dark:focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 dark:focus:ring-cyan-500 text-sm transition-colors duration-300"
+                      className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 dark:focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 dark:focus:ring-cyan-500 text-sm transition-all duration-300"
                       placeholder="https://verify.example.com"
                       maxLength={300}
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">
                       Logo URL *
                     </label>
                     <input
                       type="url"
                       value={newCert.logo_url}
                       onChange={(e) => setNewCert({ ...newCert, logo_url: e.target.value })}
-                      className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 dark:focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 dark:focus:ring-cyan-500 text-sm transition-colors duration-300"
+                      className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-500 dark:focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 dark:focus:ring-cyan-500 text-sm transition-all duration-300"
                       placeholder="https://example.com/logo.png"
                       maxLength={300}
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">
                       Issue Date *
                     </label>
                     <input
                       type="date"
                       value={newCert.issue_date}
                       onChange={(e) => setNewCert({ ...newCert, issue_date: e.target.value })}
-                      className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500 dark:focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 dark:focus:ring-cyan-500 text-sm transition-colors duration-300"
+                      className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500 dark:focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 dark:focus:ring-cyan-500 text-sm transition-all duration-300"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">
                       Expiry Date (Optional)
                     </label>
                     <input
                       type="date"
                       value={newCert.expiry_date}
                       onChange={(e) => setNewCert({ ...newCert, expiry_date: e.target.value })}
-                      className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500 dark:focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 dark:focus:ring-cyan-500 text-sm transition-colors duration-300"
+                      className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500 dark:focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 dark:focus:ring-cyan-500 text-sm transition-all duration-300"
                     />
                   </div>
                 </div>
@@ -536,6 +591,7 @@ export default function ProfileEdit() {
                         <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 transition-colors duration-300">
                           {cert.issuer}
                         </p>
+                        
                         <div className="space-y-1 text-xs text-gray-500 dark:text-gray-500 transition-colors duration-300">
                           <div>
                             <span className="text-gray-600 dark:text-gray-400">Issued:</span> {formatDate(cert.issue_date)}
@@ -589,6 +645,21 @@ export default function ProfileEdit() {
             </button>
           </div>
         </form>
+
+        {/* Mobile Save Button (Sticky) */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-t border-gray-200 dark:border-gray-600/30 z-50">
+          <button
+            onClick={handleSubmit}
+            disabled={saving}
+            className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg transition-colors font-medium"
+          >
+            <Save className="h-5 w-5" />
+            <span>{saving ? 'Saving...' : 'Save Profile'}</span>
+          </button>
+        </div>
+
+        {/* Mobile padding to prevent content being hidden behind sticky button */}
+        <div className="lg:hidden h-20"></div>
       </div>
     </div>
   );
