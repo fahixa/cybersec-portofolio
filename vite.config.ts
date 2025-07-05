@@ -4,18 +4,13 @@ import react from '@vitejs/plugin-react';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  define: {
-    // Remove console.log in production
-    'console.log': process.env.NODE_ENV === 'production' ? '() => {}' : 'console.log',
-    'console.debug': process.env.NODE_ENV === 'production' ? '() => {}' : 'console.debug',
-  },
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
   build: {
     // Optimize build for production
     target: 'esnext',
-    minify: 'esbuild',
+    minify: 'terser',
     sourcemap: false, // Disable source maps in production for security
     cssCodeSplit: true,
     assetsInlineLimit: 4096,
