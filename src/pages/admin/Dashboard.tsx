@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Shield, FileText, User, Plus, LogOut, Edit, Trash2, Eye, EyeOff, Clock, AlertTriangle, BookOpen, Star, Database } from 'lucide-react';
+import { Shield, FileText, User, Plus, LogOut, Edit, Trash2, Eye, EyeOff, Clock, AlertTriangle, BookOpen, Star } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase, type Profile, type Writeup, type Article } from '../../lib/supabase';
 import GlitchText from '../../components/GlitchText';
 import AnimatedCard from '../../components/AnimatedCard';
-import { DataManager } from '../../components/DataManager';
 
 export default function Dashboard() {
   const { user, signOut, isSessionValid } = useAuth();
@@ -288,7 +287,7 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 sm:gap-8">
           {/* Profile Management */}
-          <div>
+          <div className="lg:col-span-2">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
               <h2 className="text-lg sm:text-2xl font-bold text-blue-600 dark:text-green-400 font-mono transition-colors duration-300">Profile</h2>
               <Link
@@ -316,7 +315,7 @@ export default function Dashboard() {
           </div>
 
           {/* Writeups Management */}
-          <div>
+          <div className="lg:col-span-2">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
               <h2 className="text-lg sm:text-2xl font-bold text-blue-600 dark:text-green-400 font-mono transition-colors duration-300">Writeups</h2>
               <Link
@@ -387,7 +386,7 @@ export default function Dashboard() {
           </div>
 
           {/* Articles Management */}
-          <div>
+          <div className="lg:col-span-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
               <h2 className="text-lg sm:text-2xl font-bold text-blue-600 dark:text-green-400 font-mono transition-colors duration-300">Articles</h2>
               <Link
@@ -474,14 +473,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Data Management */}
-          <div>
-            <div className="flex items-center mb-4 sm:mb-6">
-              <Database className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600 dark:text-yellow-400 mr-2 sm:mr-3 transition-colors duration-300" />
-              <h2 className="text-lg sm:text-2xl font-bold text-yellow-600 dark:text-yellow-400 font-mono transition-colors duration-300">Data</h2>
-            </div>
-            <DataManager />
-          </div>
         </div>
       </div>
     </div>
