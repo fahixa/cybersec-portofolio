@@ -161,7 +161,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="flex items-center justify-center">
                   <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                  <span>Indonesia</span>
+                  <span>Global</span>
                 </div>
               </div>
             </AnimatedCard>
@@ -274,6 +274,8 @@ export default function ProfilePage() {
             )}
 
             {/* Stats */}
+          </div>
+        </div>
       </div>
     </div>
   );
