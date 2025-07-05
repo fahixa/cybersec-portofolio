@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
+import { apiCache } from './apiCache';
+import { requestOptimizer } from './requestOptimizer';
 
 // Environment variables validation
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -67,6 +69,14 @@ class DatabaseError extends Error {
   }
 }
 
+// Cache TTL constants (in milliseconds)
+const CACHE_TTL = {
+  PROFILE: 10 * 60 * 1000,      // 10 minutes
+  WRITEUPS: 5 * 60 * 1000,      // 5 minutes
+  ARTICLES: 5 * 60 * 1000,      // 5 minutes
+  CERTIFICATIONS: 15 * 60 * 1000, // 15 minutes
+} as const;
+
 // Utility functions for secure data operations
 export class DatabaseService {
   // Connection test
@@ -126,6 +136,16 @@ export class DatabaseService {
   // Profile operations
   static async getProfile(userId?: string): Promise<Profile | null> {
     try {
+      // Generate cache key
+      const cacheKey = `profile:${userId || 'default'}`;
+      
+      // Check cache first
+      const cached = apiCache.get<Profile>(cacheKey);
+      if (cached) {
+        console.log('✅ Profile loaded from cache');
+        return cached;
+      }
+
       console.log('🔄 Fetching profile from database...');
       
       let query = supabase
@@ -176,6 +196,9 @@ export class DatabaseService {
       console.log('✅ Profile loaded successfully:', profileWithCertifications.name);
       console.log('📜 Certifications loaded:', certificationsData?.length || 0);
       
+      // Cache the result
+      apiCache.set(cacheKey, profileWithCertifications, CACHE_TTL.PROFILE);
+      
       return profileWithCertifications;
     } catch (error) {
       console.error('❌ Error fetching profile:', error);
@@ -185,6 +208,9 @@ export class DatabaseService {
 
   static async upsertProfile(profileData: Partial<ProfileInsert>): Promise<Profile | null> {
     try {
+      // Invalidate profile cache
+      apiCache.invalidatePattern('profile:.*');
+      
       // Sanitize inputs
       const sanitizedData: Partial<ProfileInsert> = {
         ...profileData,
@@ -231,6 +257,18 @@ export class DatabaseService {
     search?: string;
   } = {}): Promise<Writeup[]> {
     try {
+      // Generate cache key based on options
+      const cacheKey = `writeups:${JSON.stringify(options)}`;
+      
+      // Check cache first (only for published content without search)
+      if (options.published && !options.search) {
+        const cached = apiCache.get<Writeup[]>(cacheKey);
+        if (cached) {
+          console.log('✅ Writeups loaded from cache');
+          return cached;
+        }
+      }
+
       console.log('🔄 Fetching writeups from database with options:', options);
       
       let query = supabase
@@ -268,6 +306,12 @@ export class DatabaseService {
       }
 
       console.log(`✅ Fetched ${data?.length || 0} writeups`);
+      
+      // Cache published content without search
+      if (options.published && !options.search && data) {
+        apiCache.set(cacheKey, data, CACHE_TTL.WRITEUPS);
+      }
+      
       return data || [];
     } catch (error) {
       console.error('❌ Error fetching writeups:', error);
@@ -277,6 +321,15 @@ export class DatabaseService {
 
   static async getWriteupBySlug(slug: string): Promise<Writeup | null> {
     try {
+      const cacheKey = `writeup:slug:${slug}`;
+      
+      // Check cache first
+      const cached = apiCache.get<Writeup>(cacheKey);
+      if (cached) {
+        console.log('✅ Writeup loaded from cache');
+        return cached;
+      }
+
       console.log('🔄 Fetching writeup by slug:', slug);
       const sanitizedSlug = this.sanitizeString(slug);
       
@@ -297,6 +350,12 @@ export class DatabaseService {
       }
 
       console.log('✅ Writeup loaded successfully:', data?.title);
+      
+      // Cache the result
+      if (data) {
+        apiCache.set(cacheKey, data, CACHE_TTL.WRITEUPS);
+      }
+      
       return data;
     } catch (error) {
       console.error('❌ Error fetching writeup by slug:', error);
@@ -306,6 +365,9 @@ export class DatabaseService {
 
   static async upsertWriteup(writeupData: Partial<WriteupInsert>): Promise<Writeup | null> {
     try {
+      // Invalidate writeup caches
+      apiCache.invalidatePattern('writeup.*');
+      
       // Sanitize inputs
       const sanitizedData: Partial<WriteupInsert> = {
         ...writeupData,
@@ -335,6 +397,9 @@ export class DatabaseService {
 
   static async deleteWriteup(id: string): Promise<boolean> {
     try {
+      // Invalidate writeup caches
+      apiCache.invalidatePattern('writeup.*');
+      
       const { error } = await supabase
         .from('writeups')
         .delete()
@@ -358,6 +423,18 @@ export class DatabaseService {
     search?: string;
   } = {}): Promise<Article[]> {
     try {
+      // Generate cache key based on options
+      const cacheKey = `articles:${JSON.stringify(options)}`;
+      
+      // Check cache first (only for published content without search)
+      if (options.published && !options.search) {
+        const cached = apiCache.get<Article[]>(cacheKey);
+        if (cached) {
+          console.log('✅ Articles loaded from cache');
+          return cached;
+        }
+      }
+
       console.log('🔄 Fetching articles from database with options:', options);
       
       let query = supabase
@@ -399,6 +476,12 @@ export class DatabaseService {
       }
 
       console.log(`✅ Fetched ${data?.length || 0} articles`);
+      
+      // Cache published content without search
+      if (options.published && !options.search && data) {
+        apiCache.set(cacheKey, data, CACHE_TTL.ARTICLES);
+      }
+      
       return data || [];
     } catch (error) {
       console.error('❌ Error fetching articles:', error);
@@ -408,6 +491,15 @@ export class DatabaseService {
 
   static async getArticleBySlug(slug: string): Promise<Article | null> {
     try {
+      const cacheKey = `article:slug:${slug}`;
+      
+      // Check cache first
+      const cached = apiCache.get<Article>(cacheKey);
+      if (cached) {
+        console.log('✅ Article loaded from cache');
+        return cached;
+      }
+
       console.log('🔄 Fetching article by slug:', slug);
       const sanitizedSlug = this.sanitizeString(slug);
       
@@ -428,6 +520,12 @@ export class DatabaseService {
       }
 
       console.log('✅ Article loaded successfully:', data?.title);
+      
+      // Cache the result
+      if (data) {
+        apiCache.set(cacheKey, data, CACHE_TTL.ARTICLES);
+      }
+      
       return data;
     } catch (error) {
       console.error('❌ Error fetching article by slug:', error);
@@ -437,6 +535,9 @@ export class DatabaseService {
 
   static async upsertArticle(articleData: Partial<ArticleInsert>): Promise<Article | null> {
     try {
+      // Invalidate article caches
+      apiCache.invalidatePattern('article.*');
+      
       // Calculate read time
       const wordCount = articleData.content ? articleData.content.trim().split(/\s+/).length : 0;
       const readTime = Math.max(1, Math.ceil(wordCount / 200));
@@ -471,6 +572,9 @@ export class DatabaseService {
 
   static async deleteArticle(id: string): Promise<boolean> {
     try {
+      // Invalidate article caches
+      apiCache.invalidatePattern('article.*');
+      
       const { error } = await supabase
         .from('articles')
         .delete()
@@ -487,6 +591,10 @@ export class DatabaseService {
   // Certification operations
   static async upsertCertification(certData: Partial<CertificationInsert>): Promise<Certification | null> {
     try {
+      // Invalidate profile and certification caches
+      apiCache.invalidatePattern('profile:.*');
+      apiCache.invalidatePattern('certification:.*');
+      
       // Sanitize inputs
       const sanitizedData: Partial<CertificationInsert> = {
         ...certData,
@@ -518,6 +626,10 @@ export class DatabaseService {
 
   static async deleteCertification(id: string): Promise<boolean> {
     try {
+      // Invalidate profile and certification caches
+      apiCache.invalidatePattern('profile:.*');
+      apiCache.invalidatePattern('certification:.*');
+      
       const { error } = await supabase
         .from('certifications')
         .delete()

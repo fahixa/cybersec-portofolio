@@ -3,54 +3,22 @@ import { Link } from 'react-router-dom';
 import { ChevronDown, Github, Linkedin, Mail, Terminal, Shield, Bug, BookOpen, Star } from 'lucide-react';
 import GlitchText from '../components/GlitchText';
 import AnimatedCard from '../components/AnimatedCard';
-import { DatabaseService, type Profile, type Writeup, type Article } from '../lib/supabase';
+import { useProfile, useWriteups, useArticles } from '../hooks/useDataFetching';
 
 export default function Home() {
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [recentWriteups, setRecentWriteups] = useState<Writeup[]>([]);
-  const [featuredArticles, setFeaturedArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Use optimized data fetching hooks
+  const { data: profile, loading: profileLoading } = useProfile();
+  const { data: recentWriteups = [], loading: writeupsLoading } = useWriteups({ 
+    published: true, 
+    limit: 2 
+  });
+  const { data: featuredArticles = [], loading: articlesLoading } = useArticles({ 
+    published: true, 
+    featured: true, 
+    limit: 2 
+  });
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      
-      console.log('🔄 Starting data load...');
-      
-      // Test connection first with better error handling
-      const connectionOk = await DatabaseService.testConnection();
-      if (!connectionOk) {
-        console.warn('⚠️ Database connection failed, using fallback data');
-        setLoading(false);
-        return;
-      }
-      
-      console.log('🔄 Loading data in parallel...');
-      const [profileData, writeupsData, articlesData] = await Promise.all([
-        DatabaseService.getProfile(),
-        DatabaseService.getWriteups({ published: true, limit: 2 }),
-        DatabaseService.getArticles({ published: true, featured: true, limit: 2 })
-      ]);
-
-      console.log('📊 Data loaded:', {
-        profile: profileData?.name || 'No profile',
-        writeups: writeupsData.length,
-        articles: articlesData.length
-      });
-
-      setProfile(profileData);
-      setRecentWriteups(writeupsData);
-      setFeaturedArticles(articlesData);
-    } catch (error) {
-      console.error('❌ Error loading data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loading = profileLoading || writeupsLoading || articlesLoading;
 
   const scrollToContent = () => {
     document.getElementById('content')?.scrollIntoView({ behavior: 'smooth' });

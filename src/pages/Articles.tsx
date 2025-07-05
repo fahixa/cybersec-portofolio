@@ -4,45 +4,23 @@ import { BookOpen, Calendar, Clock, Tag, Star, TrendingUp, User, Award } from 'l
 import GlitchText from '../components/GlitchText';
 import AnimatedCard from '../components/AnimatedCard';
 import { SearchBar } from '../components/SearchBar';
-import { DatabaseService, type Article } from '../lib/supabase';
+import { useArticles } from '../hooks/useDataFetching';
+import { type Article } from '../lib/supabase';
 
 export default function Articles() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
   const [filter, setFilter] = useState<'all' | 'tutorial' | 'news' | 'opinion' | 'tools' | 'career'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadArticles();
-  }, []);
 
-  useEffect(() => {
-    filterArticles();
-  }, [articles, filter, searchQuery]);
-
-  const loadArticles = async () => {
-    try {
-      console.log('🔄 Loading articles...');
-      
-      const connectionOk = await DatabaseService.testConnection();
-      if (!connectionOk) {
-        console.warn('⚠️ Database connection failed');
-        setArticles([]);
-        setLoading(false);
-        return;
-      }
-      
-      const data = await DatabaseService.getArticles({ published: true });
-      console.log('📊 Articles loaded:', data.length);
-      setArticles(data);
-    } catch (error) {
-      console.error('❌ Error loading articles:', error);
-      setArticles([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Use optimized data fetching
+  const { data: articles = [], loading } = useArticles({ 
+    published: true,
+    search: searchQuery || undefined // Only include search if there's a query
+  });
 
   const filterArticles = () => {
     let filtered = articles;

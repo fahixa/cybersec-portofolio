@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { supabase, type Profile, type Writeup, type Article } from '../../lib/supabase';
 import GlitchText from '../../components/GlitchText';
 import AnimatedCard from '../../components/AnimatedCard';
+import { apiCache } from '../../lib/apiCache';
 
 export default function Dashboard() {
   const { user, signOut, isSessionValid, getSessionExpiryInfo } = useAuth();
@@ -133,6 +134,8 @@ export default function Dashboard() {
 
   const handleSignOut = async () => {
     try {
+      // Clear cache on sign out
+      apiCache.clear();
       await signOut();
       navigate('/authorize');
     } catch (error) {

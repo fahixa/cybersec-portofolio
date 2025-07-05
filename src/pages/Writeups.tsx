@@ -4,45 +4,23 @@ import { Terminal, Bug, Calendar, Clock, Tag } from 'lucide-react';
 import GlitchText from '../components/GlitchText';
 import AnimatedCard from '../components/AnimatedCard';
 import { SearchBar } from '../components/SearchBar';
-import { DatabaseService, type Writeup } from '../lib/supabase';
+import { useWriteups } from '../hooks/useDataFetching';
+import { type Writeup } from '../lib/supabase';
 
 export default function Writeups() {
   const [writeups, setWriteups] = useState<Writeup[]>([]);
   const [filteredWriteups, setFilteredWriteups] = useState<Writeup[]>([]);
   const [filter, setFilter] = useState<'all' | 'ctf' | 'bug-bounty'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadWriteups();
-  }, []);
 
-  useEffect(() => {
-    filterWriteups();
-  }, [writeups, filter, searchQuery]);
-
-  const loadWriteups = async () => {
-    try {
-      console.log('🔄 Loading writeups...');
-      
-      const connectionOk = await DatabaseService.testConnection();
-      if (!connectionOk) {
-        console.warn('⚠️ Database connection failed');
-        setWriteups([]);
-        setLoading(false);
-        return;
-      }
-      
-      const data = await DatabaseService.getWriteups({ published: true });
-      console.log('📊 Writeups loaded:', data.length);
-      setWriteups(data);
-    } catch (error) {
-      console.error('❌ Error loading writeups:', error);
-      setWriteups([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Use optimized data fetching
+  const { data: writeups = [], loading } = useWriteups({ 
+    published: true,
+    search: searchQuery || undefined // Only include search if there's a query
+  });
 
   const filterWriteups = () => {
     let filtered = writeups;

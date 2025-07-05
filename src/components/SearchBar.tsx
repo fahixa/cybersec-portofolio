@@ -59,7 +59,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       } else if (query === '') {
         onSearch('');
       }
-    }, 300);
+    }, 500); // Increased debounce time to reduce API calls
 
     return () => clearTimeout(timeoutId);
   }, [query, onSearch]);
