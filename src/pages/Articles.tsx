@@ -8,23 +8,22 @@ import { useArticles } from '../hooks/useDataFetching';
 import { type Article } from '../lib/supabase';
 
 export default function Articles() {
-  const [articles, setArticles] = useState<Article[]>([]);
   const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
   const [filter, setFilter] = useState<'all' | 'tutorial' | 'news' | 'opinion' | 'tools' | 'career'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    loadArticles();
-  });
-
   // Use optimized data fetching
-  const { data: articles = [], loading } = useArticles({ 
+  const { data: articlesData = [], loading } = useArticles({ 
     published: true,
     search: searchQuery || undefined // Only include search if there's a query
   });
 
+  useEffect(() => {
+    filterArticles();
+  }, [articlesData, filter, searchQuery]);
+
   const filterArticles = () => {
-    let filtered = articles;
+    let filtered = articlesData;
 
     // Apply category filter
     if (filter !== 'all') {
