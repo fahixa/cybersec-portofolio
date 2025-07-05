@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Github, Linkedin, Twitter, MapPin, Calendar, Award, ExternalLink } from 'lucide-react';
 import GlitchText from '../components/GlitchText';
 import AnimatedCard from '../components/AnimatedCard';
-import { supabase, type Profile, type Certification } from '../lib/supabase';
+import { SupabaseService, type Profile, type Certification } from '../lib/supabase';
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [certifications, setCertifications] = useState<Certification[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -14,15 +15,13 @@ export default function ProfilePage() {
 
   const loadProfile = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading profile:', error);
-      } else if (data) {
-        setProfile(data);
+      const profileData = await SupabaseService.getProfile();
+      setProfile(profileData);
+      
+      // Load certifications if profile exists
+      if (profileData) {
+        // Note: Certifications are loaded via the profile relation
+        setCertifications(profileData.certifications || []);
       }
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -75,7 +74,6 @@ export default function ProfilePage() {
     bio: "Passionate about finding vulnerabilities and securing digital infrastructure. Experienced in penetration testing, bug bounty hunting, and competitive hacking.",
     skills: ["Web Application Security", "Network Penetration Testing", "Reverse Engineering", "Cryptography", "Social Engineering", "Bug Bounty Hunting"],
     experience: "5+ years in cybersecurity with focus on web application testing and vulnerability research.",
-    certifications: []
   };
 
   const displayProfile = profile || defaultProfile;
@@ -95,9 +93,17 @@ export default function ProfilePage() {
           <div className="lg:col-span-1">
             <AnimatedCard className="text-center">
               <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-4 sm:mb-6 bg-gradient-to-br from-blue-500 to-cyan-500 dark:from-green-400 dark:to-cyan-400 rounded-full flex items-center justify-center transition-colors duration-300">
-                <span className="text-2xl sm:text-3xl font-bold text-white dark:text-black font-mono">
-                  {displayProfile.name.charAt(0)}
-                </span>
+                {displayProfile.avatar_url && isValidUrl(displayProfile.avatar_url) ? (
+                  <img
+                    src={displayProfile.avatar_url}
+                    alt={displayProfile.name}
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="text-2xl sm:text-3xl font-bold text-white dark:text-black font-mono">
+                    {displayProfile.name.charAt(0)}
+                  </span>
+                )}
               </div>
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white font-mono mb-2 leading-tight transition-colors duration-300">
                 {displayProfile.name}
@@ -145,7 +151,7 @@ export default function ProfilePage() {
               <div className="space-y-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
                 <div className="flex items-center justify-center">
                   <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                  <span>Active since 2019</span>
+                  <span>Active since {profile?.created_at ? new Date(profile.created_at).getFullYear() : '2019'}</span>
                 </div>
                 <div className="flex items-center justify-center">
                   <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
@@ -182,14 +188,14 @@ export default function ProfilePage() {
             </AnimatedCard>
 
             {/* Certifications Section */}
-            {displayProfile.certifications && displayProfile.certifications.length > 0 && (
+            {certifications && certifications.length > 0 && (
               <AnimatedCard glowColor="cyan">
                 <div className="flex items-center mb-4 sm:mb-6">
                   <Award className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-600 dark:text-cyan-400 mr-2 sm:mr-3 transition-colors duration-300" />
                   <h3 className="text-lg sm:text-xl font-bold text-cyan-600 dark:text-cyan-400 font-mono transition-colors duration-300">Certifications</h3>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                  {displayProfile.certifications.map((cert) => (
+                  {certifications.map((cert) => (
                     <div
                       key={cert.id}
                       className={`bg-gray-50 dark:bg-black/40 border rounded-lg p-4 transition-all duration-300 hover:scale-105 ${

@@ -3,75 +3,36 @@ import { Link } from 'react-router-dom';
 import { ChevronDown, Github, Linkedin, Twitter, Terminal, Shield, Bug, BookOpen, Star } from 'lucide-react';
 import GlitchText from '../components/GlitchText';
 import AnimatedCard from '../components/AnimatedCard';
-import { supabase, type Profile, type Writeup, type Article } from '../lib/supabase';
+import { SupabaseService, type Profile, type Writeup, type Article } from '../lib/supabase';
 
 export default function Home() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [recentWriteups, setRecentWriteups] = useState<Writeup[]>([]);
   const [featuredArticles, setFeaturedArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadProfile();
-    loadRecentWriteups();
-    loadFeaturedArticles();
+    loadData();
   }, []);
 
-  const loadProfile = async () => {
+  const loadData = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .single();
+      setLoading(true);
+      
+      // Load data in parallel
+      const [profileData, writeupsData, articlesData] = await Promise.all([
+        SupabaseService.getProfile(),
+        SupabaseService.getWriteups({ published: true, limit: 2 }),
+        SupabaseService.getArticles({ published: true, featured: true, limit: 2 })
+      ]);
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading profile:', error);
-        return;
-      }
-
-      setProfile(data);
+      setProfile(profileData);
+      setRecentWriteups(writeupsData);
+      setFeaturedArticles(articlesData);
     } catch (error) {
-      console.error('Error loading profile:', error);
-    }
-  };
-
-  const loadRecentWriteups = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('writeups')
-        .select('*')
-        .eq('published', true)
-        .order('created_at', { ascending: false })
-        .limit(2);
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading writeups:', error);
-        return;
-      }
-
-      setRecentWriteups(data || []);
-    } catch (error) {
-      console.error('Error loading writeups:', error);
-    }
-  };
-
-  const loadFeaturedArticles = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('articles')
-        .select('*')
-        .eq('published', true)
-        .eq('featured', true)
-        .order('created_at', { ascending: false })
-        .limit(2);
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading articles:', error);
-        return;
-      }
-
-      setFeaturedArticles(data || []);
-    } catch (error) {
-      console.error('Error loading articles:', error);
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -88,6 +49,16 @@ export default function Home() {
       return false;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="text-blue-600 dark:text-green-400 font-mono text-sm sm:text-base transition-colors duration-300">
+          Loading...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
