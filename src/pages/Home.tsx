@@ -101,23 +101,22 @@ export default function Home() {
 
             {/* Main Title */}
             <div className="mb-6 sm:mb-8">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black mb-4 sm:mb-6 leading-none">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight tracking-tight">
                 <span className="text-blue-600 dark:text-green-400">
                   <GlitchText text={profile?.name || "Fakhri Tyhikmawan"} />
                 </span>
               </h1>
               
               <div className="relative">
-                <p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-700 dark:text-gray-200 mb-2 tracking-tight">
+                <p className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-4">
                   {profile?.title || "Cybersecurity Analyst & Bug Bounty Hunter"}
                 </p>
-                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-500 dark:from-green-400 dark:to-cyan-400 rounded-full"></div>
               </div>
             </div>
 
             {/* Bio Section */}
             <div className="mb-10 sm:mb-14 max-w-4xl mx-auto">
-              <p className="text-lg sm:text-xl md:text-2xl text-gray-600 dark:text-gray-300 leading-relaxed font-light tracking-wide">
+              <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 leading-relaxed font-normal">
                 {profile?.bio || "Cyber Security Analyst with a Bachelor's in Computer Engineering from Telkom University. Experienced in real-time security monitoring, threat analysis, and implementing defense strategies at PT. Defender Nusa Semesta (Defenxor). Skilled in Microsoft Defender, Azure security, and compliance management. Focused on optimizing web applications and collaborating in team-driven environments."}
               </p>
             </div>
