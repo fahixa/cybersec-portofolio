@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FileText, Plus, LogOut, Edit, Trash2, Eye, EyeOff, Clock, AlertTriangle, BookOpen, Star, Calendar, User, TrendingUp, Award, ExternalLink } from 'lucide-react';
+import { FileText, Plus, LogOut, Edit, Trash2, Eye, EyeOff, Clock, AlertTriangle, BookOpen, Star, Calendar, User, TrendingUp } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { supabase, type Profile, type Writeup, type Article, type Certification } from '../../lib/supabase';
+import { supabase, type Profile, type Writeup, type Article } from '../../lib/supabase';
 import GlitchText from '../../components/GlitchText';
 import AnimatedCard from '../../components/AnimatedCard';
 
@@ -12,7 +12,6 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [writeups, setWriteups] = useState<Writeup[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
-  const [certifications, setCertifications] = useState<Certification[]>([]);
   const [loading, setLoading] = useState(true);
   const [sessionTimeRemaining, setSessionTimeRemaining] = useState<string>('');
 
@@ -62,12 +61,10 @@ export default function Dashboard() {
     try {
       console.log('🔄 Loading dashboard data...');
       
-      // Load profile with certifications
-      const { data: profileData, error: profileError } = await supabase.from('profiles')
-        .select(`
-          *,
-          certifications (*)
-        `)
+      // Load profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
         .eq('user_id', user!.id)
         .single();
       
@@ -78,20 +75,10 @@ export default function Dashboard() {
       } else if (profileData) {
         console.log('✅ Profile loaded:', profileData.name);
         setProfile(profileData);
-        
-        // Set certifications from the joined data
-        if (profileData.certifications && Array.isArray(profileData.certifications)) {
-          console.log('📜 Certifications loaded:', profileData.certifications.length);
-          setCertifications(profileData.certifications);
-        } else {
-          // If no certifications in the join, try loading them separately
-          loadCertifications(profileData.id);
-        }
       }
 
       // Load writeups
       const { data: writeupsData, error: writeupsError } = await supabase
-        .from('profiles')
         .from('writeups')
         .select('*')
         .eq('user_id', user!.id)
@@ -122,26 +109,6 @@ export default function Dashboard() {
       console.error('Error loading data:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadCertifications = async (profileId: string) => {
-    try {
-      console.log('🔄 Loading certifications for profile:', profileId);
-      const { data, error } = await supabase
-        .from('certifications')
-        .select('*')
-        .eq('profile_id', profileId)
-        .order('issue_date', { ascending: false });
-      
-      if (error) {
-        console.error('❌ Error loading certifications:', error);
-      } else {
-        console.log('✅ Certifications loaded separately:', data?.length || 0);
-        setCertifications(data || []);
-      }
-    } catch (error) {
-      console.error('Error loading certifications:', error);
     }
   };
 
@@ -253,12 +220,6 @@ export default function Dashboard() {
     });
   };
 
-  // Check if certification is expired
-  const isCertificationExpired = (cert: Certification): boolean => {
-    if (!cert.expiry_date) return false;
-    return new Date(cert.expiry_date) < new Date();
-  };
-
   // Utility functions for content preview
   const truncateText = (text: string, maxLength: number = 120): string => {
     if (text.length <= maxLength) return text;
@@ -355,7 +316,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
           <AnimatedCard className="text-center bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-500/30">
             <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 dark:text-blue-400 mx-auto mb-2 sm:mb-3" />
             <div className="text-xl sm:text-2xl font-bold text-blue-700 dark:text-blue-300 font-mono">{writeups.length}</div>
@@ -366,12 +327,6 @@ export default function Dashboard() {
             <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600 dark:text-purple-400 mx-auto mb-2 sm:mb-3" />
             <div className="text-xl sm:text-2xl font-bold text-purple-700 dark:text-purple-300 font-mono">{articles.length}</div>
             <div className="text-xs sm:text-sm text-purple-600 dark:text-purple-400">Articles</div>
-          </AnimatedCard>
-          
-          <AnimatedCard className="text-center bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-900/20 dark:to-cyan-800/20 border-cyan-200 dark:border-cyan-500/30">
-            <Award className="w-6 h-6 sm:w-8 sm:h-8 text-cyan-600 dark:text-cyan-400 mx-auto mb-2 sm:mb-3" />
-            <div className="text-xl sm:text-2xl font-bold text-cyan-700 dark:text-cyan-300 font-mono">{certifications.length}</div>
-            <div className="text-xs sm:text-sm text-cyan-600 dark:text-cyan-400">Certifications</div>
           </AnimatedCard>
           
           <AnimatedCard className="text-center bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-500/30">
@@ -621,10 +576,10 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Profile & Certifications Section */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mt-8">
+        {/* Profile Section */}
+        <div className="mt-8">
           {/* Profile Management */}
-          <div>
+          <div className="max-w-2xl">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
@@ -682,91 +637,6 @@ export default function Dashboard() {
                 </div>
               )}
             </AnimatedCard>
-          </div>
-          
-          {/* Certifications Section */}
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-cyan-100 dark:bg-cyan-900/30 rounded-lg flex items-center justify-center">
-                  <Award className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Certifications</h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Your professional credentials</p>
-                </div>
-              </div>
-              <Link
-                to="/authorize/profile"
-                className="flex items-center space-x-2 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Add New</span>
-              </Link>
-            </div>
-            
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {certifications.length > 0 ? (
-                certifications.map((cert) => (
-                  <AnimatedCard key={cert.id} className="p-4 hover:shadow-lg transition-all duration-200" glowColor="cyan">
-                    <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0">
-                        <img
-                          src={cert.logo_url}
-                          alt={`${cert.name} logo`}
-                          className="w-12 h-12 object-contain rounded-lg bg-white/10 p-2"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-gray-900 dark:text-white mb-1 line-clamp-1">
-                          {cert.name}
-                        </h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                          {cert.issuer}
-                        </p>
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-500">
-                          <div className="flex items-center">
-                            <Calendar className="w-3 h-3 mr-1" />
-                            <span>Issued: {formatDate(cert.issue_date)}</span>
-                          </div>
-                          {cert.expiry_date && (
-                            <div className={`flex items-center ${isCertificationExpired(cert) ? 'text-red-500 dark:text-red-400' : ''}`}>
-                              <Clock className="w-3 h-3 mr-1" />
-                              <span>Expires: {formatDate(cert.expiry_date)}</span>
-                            </div>
-                          )}
-                          <a
-                            href={cert.validation_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center text-cyan-600 dark:text-cyan-400 hover:text-cyan-500 dark:hover:text-cyan-300"
-                          >
-                            <span>Verify</span>
-                            <ExternalLink className="w-3 h-3 ml-1" />
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </AnimatedCard>
-                ))
-              ) : (
-                <AnimatedCard className="text-center py-8" glowColor="cyan">
-                  <Award className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-                  <p className="text-gray-500 dark:text-gray-500 mb-4">No certifications added yet</p>
-                  <Link
-                    to="/authorize/profile"
-                    className="inline-flex items-center space-x-2 text-cyan-600 dark:text-cyan-400 hover:text-cyan-500 dark:hover:text-cyan-300 text-sm font-medium"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Add your first certification</span>
-                  </Link>
-                </AnimatedCard>
-              )}
-            </div>
           </div>
         </div>
       </div>
