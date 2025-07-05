@@ -176,24 +176,59 @@ export default function ProfilePage() {
 
             <AnimatedCard glowColor="purple">
               <h3 className="text-lg sm:text-xl font-bold text-purple-600 dark:text-purple-400 font-mono mb-4 transition-colors duration-300">Experience</h3>
-              <div className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm sm:text-base transition-colors duration-300">
+              <div className="space-y-6">
                 {displayProfile.experience.split('\n\n').map((section, index) => {
                   const lines = section.split('\n');
-                  const title = lines[0];
+                  const titleLine = lines[0];
                   const details = lines.slice(1);
                   
+                  // Parse title line to extract position, company, and dates
+                  const titleParts = titleLine.split(' - ');
+                  const position = titleParts[0];
+                  const companyAndDates = titleParts.slice(1).join(' - ');
+                  const lastDashIndex = companyAndDates.lastIndexOf(' - ');
+                  const company = lastDashIndex > 0 ? companyAndDates.substring(0, lastDashIndex) : companyAndDates;
+                  const dates = lastDashIndex > 0 ? companyAndDates.substring(lastDashIndex + 3) : '';
+                  
                   return (
-                    <div key={index} className="mb-6 last:mb-0">
-                      <h4 className="font-semibold text-gray-900 dark:text-white mb-2 text-sm sm:text-base">
-                        {title}
-                      </h4>
-                      <ul className="space-y-1">
-                        {details.map((detail, detailIndex) => (
-                          <li key={detailIndex} className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 pl-2">
-                            {detail}
-                          </li>
-                        ))}
-                      </ul>
+                    <div key={index} className="relative pl-6 pb-6 last:pb-0">
+                      {/* Timeline line */}
+                      {index < displayProfile.experience.split('\n\n').length - 1 && (
+                        <div className="absolute left-2 top-8 bottom-0 w-0.5 bg-gradient-to-b from-purple-400 to-purple-200 dark:from-purple-500 dark:to-purple-700"></div>
+                      )}
+                      
+                      {/* Timeline dot */}
+                      <div className="absolute left-0 top-2 w-4 h-4 bg-purple-500 dark:bg-purple-400 rounded-full border-2 border-white dark:border-gray-900 shadow-lg"></div>
+                      
+                      {/* Content */}
+                      <div className="bg-gray-50 dark:bg-gray-800/30 rounded-lg p-4 border border-gray-200 dark:border-gray-700/30 hover:border-purple-300 dark:hover:border-purple-500/50 transition-all duration-300 hover:shadow-md">
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+                          <div className="flex-1">
+                            <h4 className="font-bold text-gray-900 dark:text-white text-sm sm:text-base leading-tight">
+                              {position}
+                            </h4>
+                            <p className="text-purple-600 dark:text-purple-400 font-medium text-xs sm:text-sm mt-1">
+                              {company}
+                            </p>
+                          </div>
+                          {dates && (
+                            <div className="flex-shrink-0">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30">
+                                {dates}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <ul className="space-y-2">
+                          {details.map((detail, detailIndex) => (
+                            <li key={detailIndex} className="flex items-start text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                              <div className="w-1.5 h-1.5 bg-purple-400 dark:bg-purple-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                              <span>{detail.replace('• ', '')}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
                   );
                 })}
