@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { DatabaseService } from '../lib/supabase';
 import { BookOpen, Calendar, Clock, Tag, Star, TrendingUp, User, Award } from 'lucide-react';
 import GlitchText from '../components/GlitchText';
 import AnimatedCard from '../components/AnimatedCard';
@@ -8,22 +9,38 @@ import { useArticles } from '../hooks/useDataFetching';
 import { type Article } from '../lib/supabase';
 
 export default function Articles() {
+  const [articles, setArticles] = useState<Article[]>([]);
   const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
   const [filter, setFilter] = useState<'all' | 'tutorial' | 'news' | 'opinion' | 'tools' | 'career'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  // Use optimized data fetching
-  const { data: articlesData = [], loading } = useArticles({ 
-    published: true,
-    search: searchQuery || undefined // Only include search if there's a query
-  });
+  useEffect(() => {
+    loadArticles();
+  }, []);
+
+  const loadArticles = async () => {
+    try {
+      setLoading(true);
+      const data = await DatabaseService.getArticles({ published: true });
+      setArticles(data || []);
+    } catch (error) {
+      console.error('Error loading articles:', error);
+      setArticles([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Remove hook-based loading
+  // const { data: articlesData = [], loading } = useArticles({ published: true, search: searchQuery || undefined });
 
   useEffect(() => {
     filterArticles();
-  }, [articlesData, filter, searchQuery]);
+  }, [articles, filter, searchQuery]);
 
   const filterArticles = () => {
-    let filtered = articlesData || [];
+    let filtered = articles || [];
 
     // Apply category filter
     if (filter !== 'all') {

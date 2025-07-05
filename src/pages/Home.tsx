@@ -1,28 +1,55 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { DatabaseService } from '../lib/supabase';
 import { ChevronDown, Github, Linkedin, Mail, Terminal, Shield, Bug, BookOpen, Star } from 'lucide-react';
 import GlitchText from '../components/GlitchText';
 import AnimatedCard from '../components/AnimatedCard';
 import { useProfile, useWriteups, useArticles } from '../hooks/useDataFetching';
 
 export default function Home() {
-  // Use optimized data fetching hooks
-  const { data: profile, loading: profileLoading } = useProfile();
-  const { data: writeupsData, loading: writeupsLoading } = useWriteups({ 
-    published: true, 
-    limit: 2 
-  });
-  const { data: articlesData, loading: articlesLoading } = useArticles({ 
-    published: true, 
-    featured: true, 
-    limit: 2 
-  });
+  const [profile, setProfile] = useState(null);
+  const [recentWriteups, setRecentWriteups] = useState([]);
+  const [featuredArticles, setFeaturedArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      
+      // Load data in parallel for better performance
+      const [profileData, writeupsData, articlesData] = await Promise.all([
+        DatabaseService.getProfile().catch(() => null),
+        DatabaseService.getWriteups({ published: true, limit: 2 }).catch(() => []),
+        DatabaseService.getArticles({ published: true, featured: true, limit: 2 }).catch(() => [])
+      ]);
+
+      setProfile(profileData);
+      setRecentWriteups(writeupsData || []);
+      setFeaturedArticles(articlesData || []);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      // Set default values on error
+      setProfile(null);
+      setRecentWriteups([]);
+      setFeaturedArticles([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Remove the hook-based loading logic
+  // const { data: profile, loading: profileLoading } = useProfile();
+  // const { data: writeupsData, loading: writeupsLoading } = useWriteups({ published: true, limit: 2 });
+  // const { data: articlesData, loading: articlesLoading } = useArticles({ published: true, featured: true, limit: 2 });
 
   // Ensure arrays are never null
-  const recentWriteups = writeupsData || [];
-  const featuredArticles = articlesData || [];
-
-  const loading = profileLoading || writeupsLoading || articlesLoading;
+  // const recentWriteups = writeupsData || [];
+  // const featuredArticles = articlesData || [];
+  // const loading = profileLoading || writeupsLoading || articlesLoading;
 
   const scrollToContent = () => {
     document.getElementById('content')?.scrollIntoView({ behavior: 'smooth' });

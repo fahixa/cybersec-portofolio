@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { DatabaseService } from '../lib/supabase';
 import { Terminal, Bug, Calendar, Clock, Tag } from 'lucide-react';
 import GlitchText from '../components/GlitchText';
 import AnimatedCard from '../components/AnimatedCard';
@@ -8,15 +9,31 @@ import { useWriteups } from '../hooks/useDataFetching';
 import { type Writeup } from '../lib/supabase';
 
 export default function Writeups() {
+  const [writeups, setWriteups] = useState<Writeup[]>([]);
   const [filteredWriteups, setFilteredWriteups] = useState<Writeup[]>([]);
   const [filter, setFilter] = useState<'all' | 'ctf' | 'bug-bounty'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  // Use optimized data fetching
-  const { data: writeups = [], loading } = useWriteups({ 
-    published: true,
-    search: searchQuery || undefined // Only include search if there's a query
-  });
+  useEffect(() => {
+    loadWriteups();
+  }, []);
+
+  const loadWriteups = async () => {
+    try {
+      setLoading(true);
+      const data = await DatabaseService.getWriteups({ published: true });
+      setWriteups(data || []);
+    } catch (error) {
+      console.error('Error loading writeups:', error);
+      setWriteups([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Remove hook-based loading
+  // const { data: writeups = [], loading } = useWriteups({ published: true, search: searchQuery || undefined });
 
   useEffect(() => {
     filterWriteups();

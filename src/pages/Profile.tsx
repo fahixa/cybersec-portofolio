@@ -1,21 +1,40 @@
 import { useEffect, useState } from 'react';
 import { Github, Linkedin, Mail, MapPin, Calendar, Award, ExternalLink } from 'lucide-react';
+import { DatabaseService } from '../lib/supabase';
 import GlitchText from '../components/GlitchText';
 import AnimatedCard from '../components/AnimatedCard';
 import { useProfile } from '../hooks/useDataFetching';
 import { type Profile, type Certification } from '../lib/supabase';
 
 export default function ProfilePage() {
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [certifications, setCertifications] = useState<Certification[]>([]);
-
-  // Use optimized data fetching
-  const { data: profile, loading } = useProfile();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      setLoading(true);
+      const profileData = await DatabaseService.getProfile();
+      setProfile(profileData);
+      if (profileData) {
+        setCertifications(profileData.certifications || []);
+      }
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* useEffect(() => {
     if (profile) {
       setCertifications(profile.certifications || []);
     }
-  }, [profile]);
+  }, [profile]); */
 
   // Secure URL validation
   const isValidUrl = (url: string): boolean => {

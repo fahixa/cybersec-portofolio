@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { DatabaseService } from '../lib/supabase';
 import { apiCache } from '../lib/apiCache';
 
 interface UseDataFetchingOptions<T> {
@@ -31,7 +32,7 @@ export function useDataFetching<T>(
   } = options;
 
   const [data, setData] = useState<T | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Start with loading true
   const [error, setError] = useState<string | null>(null);
   const [lastFetch, setLastFetch] = useState<number>(0);
   
@@ -42,21 +43,26 @@ export function useDataFetching<T>(
   const isStale = Date.now() - lastFetch > staleTime;
 
   const fetchData = useCallback(async () => {
-    if (!enabled) return;
+    if (!enabled) {
+      setLoading(false);
+      return;
+    }
+
+    // Check cache first before setting loading
+    if (cacheKey) {
+      const cached = apiCache.get<T>(cacheKey);
+      if (cached) {
+        setData(cached);
+        setError(null);
+        setLoading(false);
+        setLastFetch(Date.now());
+        return;
+      }
+    }
 
     // Cancel previous request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
-    }
-
-    // Check cache first
-    if (cacheKey) {
-      const cached = apiCache.get<T>(cacheKey);
-      if (cached && !isStale) {
-        setData(cached);
-        setError(null);
-        return;
-      }
     }
 
     setLoading(true);
@@ -92,7 +98,7 @@ export function useDataFetching<T>(
         setLoading(false);
       }
     }
-  }, [fetchFn, enabled, cacheKey, cacheTTL, isStale, ...dependencies]);
+  }, [fetchFn, enabled, cacheKey, cacheTTL, ...dependencies]);
 
   // Initial fetch and dependency-based refetch
   useEffect(() => {
@@ -132,12 +138,10 @@ export function useDataFetching<T>(
   };
 }
 
-// Specialized hooks for common data types
+// Specialized hooks for common data types with direct imports
 export function useProfile(userId?: string) {
   return useDataFetching(
-    () => import('../lib/supabase').then(({ DatabaseService }) => 
-      DatabaseService.getProfile(userId)
-    ),
+    () => DatabaseService.getProfile(userId),
     [userId],
     {
       cacheKey: `profile:${userId || 'default'}`,
@@ -149,28 +153,24 @@ export function useProfile(userId?: string) {
 
 export function useWriteups(options: any = {}) {
   return useDataFetching(
-    () => import('../lib/supabase').then(({ DatabaseService }) => 
-      DatabaseService.getWriteups(options)
-    ),
+    () => DatabaseService.getWriteups(options),
     [JSON.stringify(options)],
     {
-      cacheKey: `writeups:${JSON.stringify(options)}`,
+      cacheKey: options.search ? undefined : `writeups:${JSON.stringify(options)}`,
       cacheTTL: 5 * 60 * 1000, // 5 minutes
-      enabled: !options.search // Don't cache search results
+      enabled: true
     }
   );
 }
 
 export function useArticles(options: any = {}) {
   return useDataFetching(
-    () => import('../lib/supabase').then(({ DatabaseService }) => 
-      DatabaseService.getArticles(options)
-    ),
+    () => DatabaseService.getArticles(options),
     [JSON.stringify(options)],
     {
-      cacheKey: `articles:${JSON.stringify(options)}`,
+      cacheKey: options.search ? undefined : `articles:${JSON.stringify(options)}`,
       cacheTTL: 5 * 60 * 1000, // 5 minutes
-      enabled: !options.search // Don't cache search results
+      enabled: true
     }
   );
 }
