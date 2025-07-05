@@ -188,8 +188,6 @@ export default function Home() {
                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-500 dark:from-green-400 dark:to-cyan-400 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur"></div>
               </a>
             </div>
-          </div>
-        </div>
 
         {/* Enhanced Scroll Indicator */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
