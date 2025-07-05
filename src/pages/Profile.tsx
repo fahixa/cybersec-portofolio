@@ -157,7 +157,7 @@ export default function ProfilePage() {
               <div className="space-y-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
                 <div className="flex items-center justify-center">
                   <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                  <span>Active since {profile?.created_at ? new Date(profile.created_at).getFullYear() : '2017'}</span>
+                  <span>Active since 2017</span>
                 </div>
                 <div className="flex items-center justify-center">
                   <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
