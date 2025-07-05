@@ -154,7 +154,9 @@ export default function ProfileEdit() {
           user_id: user!.id,
           ...sanitizedData,
           updated_at: new Date().toISOString(),
-        } as any)
+        } as any, {
+          onConflict: 'user_id'
+        })
         .select()
         .single();
 
