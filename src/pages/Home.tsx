@@ -100,7 +100,7 @@ export default function Home() {
             </div>
 
             {/* Main Title with Enhanced Typography */}
-          <div className="mb-6 sm:mb-8">
+            <div className="mb-6 sm:mb-8">
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black mb-4 sm:mb-6 leading-none">
                 <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 dark:from-green-400 dark:via-cyan-400 dark:to-green-600 bg-clip-text text-transparent animate-gradient-x">
                   <GlitchText text={profile?.name || "Fakhri Tyhikmawan"} />
@@ -113,7 +113,7 @@ export default function Home() {
                 </p>
                 <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-500 dark:from-green-400 dark:to-cyan-400 rounded-full"></div>
               </div>
-          </div>
+            </div>
 
             {/* Enhanced Bio Section */}
             <div className="mb-10 sm:mb-14 max-w-4xl mx-auto">
@@ -121,7 +121,6 @@ export default function Home() {
                 {profile?.bio || "Cyber Security Analyst with a Bachelor's in Computer Engineering from Telkom University. Experienced in real-time security monitoring, threat analysis, and implementing defense strategies at PT. Defender Nusa Semesta (Defenxor). Skilled in Microsoft Defender, Azure security, and compliance management. Focused on optimizing web applications and collaborating in team-driven environments."}
               </p>
             </div>
-          </div>
 
             {/* Premium Action Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-12 sm:mb-16">
@@ -151,7 +150,6 @@ export default function Home() {
                 <span className="text-lg relative z-10">About Me</span>
               </Link>
             </div>
-          </div>
 
             {/* Enhanced Social Links */}
             <div className="flex justify-center items-center space-x-8">
@@ -188,15 +186,17 @@ export default function Home() {
                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-500 dark:from-green-400 dark:to-cyan-400 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur"></div>
               </a>
             </div>
+          </div>
+        </div>
 
         {/* Enhanced Scroll Indicator */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
           <div className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-medium tracking-wider uppercase">Scroll Down</div>
           <button
-          onClick={scrollToContent}
+            onClick={scrollToContent}
             className="group p-3 bg-white/10 dark:bg-white/5 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-full hover:bg-white/20 dark:hover:bg-white/10 transition-all duration-300 hover:scale-110"
-          aria-label="Scroll to content"
-        >
+            aria-label="Scroll to content"
+          >
             <ChevronDown className="w-5 h-5 text-blue-600 dark:text-green-400 group-hover:text-blue-500 dark:group-hover:text-green-300 animate-bounce transition-colors duration-300" />
           </button>
         </div>
