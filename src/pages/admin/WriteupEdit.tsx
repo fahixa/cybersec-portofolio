@@ -296,12 +296,12 @@ export const WriteupEdit: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">
                 Content *
               </label>
-              <div className="relative">
+              <div className="relative markdown-editor">
                 <MarkdownEditor
                   value={writeup.content || ''}
                   onChange={(content) => setWriteup(prev => ({ ...prev, content }))}
                   placeholder="Write your detailed writeup here using Markdown..."
-                  className="min-h-[400px] sm:min-h-[500px]"
+                  className="min-h-[400px] sm:min-h-[500px] border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden"
                 />
               </div>
             </div>

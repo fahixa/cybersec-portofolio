@@ -266,7 +266,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
-            className="w-full h-full min-h-[400px] p-4 bg-transparent text-gray-300 placeholder-gray-500 resize-none focus:outline-none font-mono text-sm leading-relaxed"
+            className="w-full h-full min-h-[400px] p-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:outline-none font-mono text-sm leading-relaxed border-0 focus:ring-0"
           />
         )}
       </div>
@@ -274,10 +274,14 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       {/* Status bar */}
       <div className="flex items-center justify-between px-4 py-2 border-t border-gray-600/30 bg-gray-800/30 text-xs text-gray-500">
         <div>
-          {value.length} characters, {value.split(/\s+/).filter(word => word.length > 0).length} words
+          <span className="text-gray-600 dark:text-gray-400">
+            {value.length} characters, {value.split(/\s+/).filter(word => word.length > 0).length} words
+          </span>
         </div>
         <div>
-          Markdown supported
+          <span className="text-gray-600 dark:text-gray-400">
+            Markdown supported
+          </span>
         </div>
       </div>
     </div>
