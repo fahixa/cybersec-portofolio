@@ -8,15 +8,19 @@ import { useProfile, useWriteups, useArticles } from '../hooks/useDataFetching';
 export default function Home() {
   // Use optimized data fetching hooks
   const { data: profile, loading: profileLoading } = useProfile();
-  const { data: recentWriteups = [], loading: writeupsLoading } = useWriteups({ 
+  const { data: writeupsData, loading: writeupsLoading } = useWriteups({ 
     published: true, 
     limit: 2 
   });
-  const { data: featuredArticles = [], loading: articlesLoading } = useArticles({ 
+  const { data: articlesData, loading: articlesLoading } = useArticles({ 
     published: true, 
     featured: true, 
     limit: 2 
   });
+
+  // Ensure arrays are never null
+  const recentWriteups = writeupsData || [];
+  const featuredArticles = articlesData || [];
 
   const loading = profileLoading || writeupsLoading || articlesLoading;
 
