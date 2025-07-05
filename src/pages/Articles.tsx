@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { DatabaseService } from '../lib/supabase';
 import { BookOpen, Calendar, Clock, Tag, Star, TrendingUp, User, Award } from 'lucide-react';
+import { DatabaseService, type Article } from '../lib/supabase';
+import { SecurityUtils } from '../lib/security';
+import { errorHandler } from '../lib/errorHandler';
+import LoadingSpinner from '../components/LoadingSpinner';
 import GlitchText from '../components/GlitchText';
 import AnimatedCard from '../components/AnimatedCard';
 import { SearchBar } from '../components/SearchBar';
-import { useArticles } from '../hooks/useDataFetching';
-import { type Article } from '../lib/supabase';
 
 export default function Articles() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -14,6 +15,7 @@ export default function Articles() {
   const [filter, setFilter] = useState<'all' | 'tutorial' | 'news' | 'opinion' | 'tools' | 'career'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadArticles();
@@ -22,18 +24,18 @@ export default function Articles() {
   const loadArticles = async () => {
     try {
       setLoading(true);
+      setError(null);
       const data = await DatabaseService.getArticles({ published: true });
       setArticles(data || []);
     } catch (error) {
-      console.error('Error loading articles:', error);
+      const errorMessage = errorHandler.createUserFriendlyMessage(error);
+      setError(errorMessage);
+      errorHandler.logError('Error loading articles', error);
       setArticles([]);
     } finally {
       setLoading(false);
     }
   };
-
-  // Remove hook-based loading
-  // const { data: articlesData = [], loading } = useArticles({ published: true, search: searchQuery || undefined });
 
   useEffect(() => {
     filterArticles();
@@ -66,15 +68,7 @@ export default function Articles() {
   };
 
   const handleSearch = (query: string) => {
-    // Secure input sanitization
-    const sanitizedQuery = query
-      .replace(/[<>]/g, '') // Remove angle brackets
-      .replace(/javascript:/gi, '') // Remove javascript: protocol
-      .replace(/on\w+=/gi, '') // Remove event handlers
-      .replace(/script/gi, '') // Remove script tags
-      .trim()
-      .slice(0, 100); // Limit length
-    
+    const sanitizedQuery = SecurityUtils.sanitizeInput(query);
     setSearchQuery(sanitizedQuery);
   };
 
@@ -113,8 +107,34 @@ export default function Articles() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center px-4 bg-gray-50 dark:bg-black transition-colors duration-300">
-        <div className="text-blue-600 dark:text-green-400 font-mono text-sm sm:text-base transition-colors duration-300">Loading articles...</div>
+      <div className="min-h-screen pt-16 sm:pt-20 bg-gray-50 dark:bg-black transition-colors duration-300">
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <LoadingSpinner size="lg" text="Loading articles..." />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen pt-16 sm:pt-20 bg-gray-50 dark:bg-black transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+          <div className="text-center">
+            <BookOpen className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+            <h3 className="text-xl font-mono text-gray-500 dark:text-gray-500 mb-2">
+              Unable to load articles
+            </h3>
+            <p className="text-gray-600 dark:text-gray-600 mb-4">
+              {error}
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-600 dark:bg-green-600 hover:bg-blue-700 dark:hover:bg-green-700 text-white dark:text-black rounded-lg transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
       </div>
     );
   }

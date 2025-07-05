@@ -1,19 +1,20 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
-import { apiCache } from './apiCache';
-import { requestOptimizer } from './requestOptimizer';
+import { SecurityUtils } from './security';
+import { errorHandler } from './errorHandler';
 
 // Environment variables validation
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Debug environment variables
-console.log('Database URL:', supabaseUrl);
-console.log('Database Key:', supabaseAnonKey ? 'Set' : 'Missing');
+if (import.meta.env.DEV) {
+  console.log('Database URL:', supabaseUrl);
+  console.log('Database Key:', supabaseAnonKey ? 'Set' : 'Missing');
+}
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ Missing database environment variables');
-  console.error('Please check your .env file');
+  errorHandler.logError('Missing database environment variables', new Error('Database configuration missing'));
   throw new Error('Database configuration missing');
 }
 
@@ -22,7 +23,7 @@ if (supabaseUrl) {
   try {
     new URL(supabaseUrl);
   } catch {
-    console.error('Invalid database URL format:', supabaseUrl);
+    errorHandler.logError('Invalid database URL format', new Error(`Invalid URL: ${supabaseUrl}`));
   }
 }
 
@@ -69,84 +70,40 @@ class DatabaseError extends Error {
   }
 }
 
-// Cache TTL constants (in milliseconds)
-const CACHE_TTL = {
-  PROFILE: 10 * 60 * 1000,      // 10 minutes
-  WRITEUPS: 5 * 60 * 1000,      // 5 minutes
-  ARTICLES: 5 * 60 * 1000,      // 5 minutes
-  CERTIFICATIONS: 15 * 60 * 1000, // 15 minutes
-} as const;
-
 // Utility functions for secure data operations
 export class DatabaseService {
   // Connection test
   static async testConnection(): Promise<boolean> {
     try {
-      console.log('🔄 Testing database connection...');
+      if (import.meta.env.DEV) {
+        console.log('🔄 Testing database connection...');
+      }
       const { error } = await supabase
         .from('profiles')
         .select('id')
         .limit(1);
       
       if (error) {
-        console.error('❌ Connection test failed:', error.message);
-        console.error('Error details:', error);
+        errorHandler.logError('Database connection test failed', error);
         return false;
       }
       
-      console.log('✅ Database connection successful');
+      if (import.meta.env.DEV) {
+        console.log('✅ Database connection successful');
+      }
       return true;
     } catch (error) {
-      console.error('❌ Connection test error:', error);
+      errorHandler.logError('Database connection test error', error);
       return false;
     }
-  }
-
-  // Input sanitization helper
-  private static sanitizeString(input: string): string {
-    return input
-      .replace(/[<>]/g, '') // Remove angle brackets
-      .replace(/javascript:/gi, '') // Remove javascript: protocol
-      .replace(/on\w+=/gi, '') // Remove event handlers
-      .replace(/script/gi, '') // Remove script tags
-      .trim();
-  }
-
-  // URL validation helper
-  private static isValidUrl(url: string): boolean {
-    try {
-      const urlObj = new URL(url);
-      return ['http:', 'https:'].includes(urlObj.protocol);
-    } catch {
-      return false;
-    }
-  }
-
-  // Slug generation helper
-  private static generateSlug(title: string): string {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .replace(/-+/g, '-') // Replace multiple hyphens with single
-      .trim()
-      .slice(0, 100); // Limit length
   }
 
   // Profile operations
   static async getProfile(userId?: string): Promise<Profile | null> {
     try {
-      // Generate cache key
-      const cacheKey = `profile:${userId || 'default'}`;
-      
-      // Check cache first
-      const cached = apiCache.get<Profile>(cacheKey);
-      if (cached) {
-        console.log('✅ Profile loaded from cache');
-        return cached;
+      if (import.meta.env.DEV) {
+        console.log('🔄 Fetching profile from database...');
       }
-
-      console.log('🔄 Fetching profile from database...');
       
       let query = supabase
         .from('profiles')
@@ -162,7 +119,9 @@ export class DatabaseService {
         console.error('❌ Profile fetch error:', profileError.message);
         console.error('Error details:', profileError);
         if (profileError.code === 'PGRST116' || profileError.message.includes('No rows')) {
-          console.log('ℹ️ No profile found');
+          if (import.meta.env.DEV) {
+            console.log('ℹ️ No profile found');
+          }
           return null;
         }
         throw new DatabaseError('Failed to fetch profile', profileError);
@@ -171,12 +130,16 @@ export class DatabaseService {
       const profile = Array.isArray(profileData) ? profileData[0] : profileData;
       
       if (!profile) {
-        console.log('ℹ️ No profile found');
+        if (import.meta.env.DEV) {
+          console.log('ℹ️ No profile found');
+        }
         return null;
       }
 
       // Fetch certifications separately
-      console.log('🔄 Fetching certifications for profile:', profile.id);
+      if (import.meta.env.DEV) {
+        console.log('🔄 Fetching certifications for profile:', profile.id);
+      }
       const { data: certificationsData, error: certificationsError } = await supabase
         .from('certifications')
         .select('*')
@@ -184,7 +147,7 @@ export class DatabaseService {
         .order('issue_date', { ascending: false });
 
       if (certificationsError) {
-        console.error('❌ Certifications fetch error:', certificationsError.message);
+        errorHandler.logWarning('Certifications fetch error', { error: certificationsError.message });
         // Don't throw error, just log it and continue without certifications
       }
 
@@ -193,45 +156,41 @@ export class DatabaseService {
         certifications: certificationsData || []
       };
 
-      console.log('✅ Profile loaded successfully:', profileWithCertifications.name);
-      console.log('📜 Certifications loaded:', certificationsData?.length || 0);
-      
-      // Cache the result
-      apiCache.set(cacheKey, profileWithCertifications, CACHE_TTL.PROFILE);
+      if (import.meta.env.DEV) {
+        console.log('✅ Profile loaded successfully:', profileWithCertifications.name);
+        console.log('📜 Certifications loaded:', certificationsData?.length || 0);
+      }
       
       return profileWithCertifications;
     } catch (error) {
-      console.error('❌ Error fetching profile:', error);
+      errorHandler.logError('Error fetching profile', error);
       return null;
     }
   }
 
   static async upsertProfile(profileData: Partial<ProfileInsert>): Promise<Profile | null> {
     try {
-      // Invalidate profile cache
-      apiCache.invalidatePattern('profile:.*');
-      
       // Sanitize inputs
       const sanitizedData: Partial<ProfileInsert> = {
         ...profileData,
-        name: profileData.name ? this.sanitizeString(profileData.name) : undefined,
-        title: profileData.title ? this.sanitizeString(profileData.title) : undefined,
-        bio: profileData.bio ? this.sanitizeString(profileData.bio) : undefined,
-        experience: profileData.experience ? this.sanitizeString(profileData.experience) : undefined,
+        name: profileData.name ? SecurityUtils.sanitizeInput(profileData.name) : undefined,
+        title: profileData.title ? SecurityUtils.sanitizeInput(profileData.title) : undefined,
+        bio: profileData.bio ? SecurityUtils.sanitizeInput(profileData.bio) : undefined,
+        experience: profileData.experience ? SecurityUtils.sanitizeInput(profileData.experience) : undefined,
       };
 
       // Validate URLs
-      if (sanitizedData.github_url && !this.isValidUrl(sanitizedData.github_url)) {
+      if (sanitizedData.github_url && !SecurityUtils.isValidUrl(sanitizedData.github_url)) {
         throw new Error('Invalid GitHub URL');
       }
-      if (sanitizedData.linkedin_url && !this.isValidUrl(sanitizedData.linkedin_url)) {
+      if (sanitizedData.linkedin_url && !SecurityUtils.isValidUrl(sanitizedData.linkedin_url)) {
         throw new Error('Invalid LinkedIn URL');
       }
-      if (sanitizedData.twitter_url && !this.isValidUrl(sanitizedData.twitter_url)) {
-        throw new Error('Invalid Twitter URL');
-      }
-      if (sanitizedData.avatar_url && !this.isValidUrl(sanitizedData.avatar_url)) {
+      if (sanitizedData.avatar_url && !SecurityUtils.isValidUrl(sanitizedData.avatar_url)) {
         throw new Error('Invalid Avatar URL');
+      }
+      if (sanitizedData.email && !SecurityUtils.isValidEmail(sanitizedData.email)) {
+        throw new Error('Invalid email address');
       }
 
       const { data, error } = await supabase
@@ -243,7 +202,7 @@ export class DatabaseService {
       if (error) throw new DatabaseError('Failed to upsert profile', error);
       return data;
     } catch (error) {
-      console.error('Error upserting profile:', error);
+      errorHandler.logError('Error upserting profile', error);
       throw error;
     }
   }
@@ -257,19 +216,9 @@ export class DatabaseService {
     search?: string;
   } = {}): Promise<Writeup[]> {
     try {
-      // Generate cache key based on options
-      const cacheKey = `writeups:${JSON.stringify(options)}`;
-      
-      // Check cache first (only for published content without search)
-      if (options.published && !options.search) {
-        const cached = apiCache.get<Writeup[]>(cacheKey);
-        if (cached) {
-          console.log('✅ Writeups loaded from cache');
-          return cached;
-        }
+      if (import.meta.env.DEV) {
+        console.log('🔄 Fetching writeups from database with options:', options);
       }
-
-      console.log('🔄 Fetching writeups from database with options:', options);
       
       let query = supabase
         .from('writeups')
@@ -285,7 +234,7 @@ export class DatabaseService {
       }
 
       if (options.search) {
-        const sanitizedSearch = this.sanitizeString(options.search);
+        const sanitizedSearch = SecurityUtils.sanitizeInput(options.search);
         query = query.or(`title.ilike.%${sanitizedSearch}%,excerpt.ilike.%${sanitizedSearch}%,content.ilike.%${sanitizedSearch}%`);
       }
 
@@ -300,38 +249,32 @@ export class DatabaseService {
       const { data, error } = await query;
 
       if (error) {
-        console.error('❌ Writeups fetch error:', error.message);
-        console.error('Error details:', error);
+        errorHandler.logError('Writeups fetch error', error);
         throw new DatabaseError('Failed to fetch writeups', error);
       }
 
-      console.log(`✅ Fetched ${data?.length || 0} writeups`);
-      
-      // Cache published content without search
-      if (options.published && !options.search && data) {
-        apiCache.set(cacheKey, data, CACHE_TTL.WRITEUPS);
+      if (import.meta.env.DEV) {
+        console.log(`✅ Fetched ${data?.length || 0} writeups`);
       }
       
       return data || [];
     } catch (error) {
-      console.error('❌ Error fetching writeups:', error);
+      errorHandler.logError('Error fetching writeups', error);
       return [];
     }
   }
 
   static async getWriteupBySlug(slug: string): Promise<Writeup | null> {
     try {
-      const cacheKey = `writeup:slug:${slug}`;
-      
-      // Check cache first
-      const cached = apiCache.get<Writeup>(cacheKey);
-      if (cached) {
-        console.log('✅ Writeup loaded from cache');
-        return cached;
+      if (import.meta.env.DEV) {
+        console.log('🔄 Fetching writeup by slug:', slug);
       }
-
-      console.log('🔄 Fetching writeup by slug:', slug);
-      const sanitizedSlug = this.sanitizeString(slug);
+      
+      const sanitizedSlug = SecurityUtils.sanitizeInput(slug);
+      
+      if (!SecurityUtils.isValidSlug(sanitizedSlug)) {
+        throw new Error('Invalid slug format');
+      }
       
       const { data, error } = await supabase
         .from('writeups')
@@ -342,38 +285,34 @@ export class DatabaseService {
 
       if (error) {
         if (error.code === 'PGRST116' || error.message.includes('No rows')) {
-          console.log('ℹ️ Writeup not found for slug:', slug);
+          if (import.meta.env.DEV) {
+            console.log('ℹ️ Writeup not found for slug:', slug);
+          }
           return null;
         }
-        console.error('❌ Writeup fetch error:', error.message);
+        errorHandler.logError('Writeup fetch error', error);
         throw new DatabaseError('Failed to fetch writeup', error);
       }
 
-      console.log('✅ Writeup loaded successfully:', data?.title);
-      
-      // Cache the result
-      if (data) {
-        apiCache.set(cacheKey, data, CACHE_TTL.WRITEUPS);
+      if (import.meta.env.DEV) {
+        console.log('✅ Writeup loaded successfully:', data?.title);
       }
       
       return data;
     } catch (error) {
-      console.error('❌ Error fetching writeup by slug:', error);
+      errorHandler.logError('Error fetching writeup by slug', error);
       return null;
     }
   }
 
   static async upsertWriteup(writeupData: Partial<WriteupInsert>): Promise<Writeup | null> {
     try {
-      // Invalidate writeup caches
-      apiCache.invalidatePattern('writeup.*');
-      
       // Sanitize inputs
       const sanitizedData: Partial<WriteupInsert> = {
         ...writeupData,
-        title: writeupData.title ? this.sanitizeString(writeupData.title) : undefined,
-        excerpt: writeupData.excerpt ? this.sanitizeString(writeupData.excerpt) : undefined,
-        slug: writeupData.title ? this.generateSlug(writeupData.title) : writeupData.slug,
+        title: writeupData.title ? SecurityUtils.sanitizeInput(writeupData.title) : undefined,
+        excerpt: writeupData.excerpt ? SecurityUtils.sanitizeInput(writeupData.excerpt) : undefined,
+        slug: writeupData.title ? SecurityUtils.generateSlug(writeupData.title) : writeupData.slug,
       };
 
       // Validate required fields
@@ -390,16 +329,13 @@ export class DatabaseService {
       if (error) throw new DatabaseError('Failed to upsert writeup', error);
       return data;
     } catch (error) {
-      console.error('Error upserting writeup:', error);
+      errorHandler.logError('Error upserting writeup', error);
       throw error;
     }
   }
 
   static async deleteWriteup(id: string): Promise<boolean> {
     try {
-      // Invalidate writeup caches
-      apiCache.invalidatePattern('writeup.*');
-      
       const { error } = await supabase
         .from('writeups')
         .delete()
@@ -408,7 +344,7 @@ export class DatabaseService {
       if (error) throw new DatabaseError('Failed to delete writeup', error);
       return true;
     } catch (error) {
-      console.error('Error deleting writeup:', error);
+      errorHandler.logError('Error deleting writeup', error);
       return false;
     }
   }
@@ -423,19 +359,9 @@ export class DatabaseService {
     search?: string;
   } = {}): Promise<Article[]> {
     try {
-      // Generate cache key based on options
-      const cacheKey = `articles:${JSON.stringify(options)}`;
-      
-      // Check cache first (only for published content without search)
-      if (options.published && !options.search) {
-        const cached = apiCache.get<Article[]>(cacheKey);
-        if (cached) {
-          console.log('✅ Articles loaded from cache');
-          return cached;
-        }
+      if (import.meta.env.DEV) {
+        console.log('🔄 Fetching articles from database with options:', options);
       }
-
-      console.log('🔄 Fetching articles from database with options:', options);
       
       let query = supabase
         .from('articles')
@@ -455,7 +381,7 @@ export class DatabaseService {
       }
 
       if (options.search) {
-        const sanitizedSearch = this.sanitizeString(options.search);
+        const sanitizedSearch = SecurityUtils.sanitizeInput(options.search);
         query = query.or(`title.ilike.%${sanitizedSearch}%,excerpt.ilike.%${sanitizedSearch}%,content.ilike.%${sanitizedSearch}%`);
       }
 
@@ -470,38 +396,32 @@ export class DatabaseService {
       const { data, error } = await query;
 
       if (error) {
-        console.error('❌ Articles fetch error:', error.message);
-        console.error('Error details:', error);
+        errorHandler.logError('Articles fetch error', error);
         throw new DatabaseError('Failed to fetch articles', error);
       }
 
-      console.log(`✅ Fetched ${data?.length || 0} articles`);
-      
-      // Cache published content without search
-      if (options.published && !options.search && data) {
-        apiCache.set(cacheKey, data, CACHE_TTL.ARTICLES);
+      if (import.meta.env.DEV) {
+        console.log(`✅ Fetched ${data?.length || 0} articles`);
       }
       
       return data || [];
     } catch (error) {
-      console.error('❌ Error fetching articles:', error);
+      errorHandler.logError('Error fetching articles', error);
       return [];
     }
   }
 
   static async getArticleBySlug(slug: string): Promise<Article | null> {
     try {
-      const cacheKey = `article:slug:${slug}`;
-      
-      // Check cache first
-      const cached = apiCache.get<Article>(cacheKey);
-      if (cached) {
-        console.log('✅ Article loaded from cache');
-        return cached;
+      if (import.meta.env.DEV) {
+        console.log('🔄 Fetching article by slug:', slug);
       }
-
-      console.log('🔄 Fetching article by slug:', slug);
-      const sanitizedSlug = this.sanitizeString(slug);
+      
+      const sanitizedSlug = SecurityUtils.sanitizeInput(slug);
+      
+      if (!SecurityUtils.isValidSlug(sanitizedSlug)) {
+        throw new Error('Invalid slug format');
+      }
       
       const { data, error } = await supabase
         .from('articles')
@@ -512,32 +432,28 @@ export class DatabaseService {
 
       if (error) {
         if (error.code === 'PGRST116' || error.message.includes('No rows')) {
-          console.log('ℹ️ Article not found for slug:', slug);
+          if (import.meta.env.DEV) {
+            console.log('ℹ️ Article not found for slug:', slug);
+          }
           return null;
         }
-        console.error('❌ Article fetch error:', error.message);
+        errorHandler.logError('Article fetch error', error);
         throw new DatabaseError('Failed to fetch article', error);
       }
 
-      console.log('✅ Article loaded successfully:', data?.title);
-      
-      // Cache the result
-      if (data) {
-        apiCache.set(cacheKey, data, CACHE_TTL.ARTICLES);
+      if (import.meta.env.DEV) {
+        console.log('✅ Article loaded successfully:', data?.title);
       }
       
       return data;
     } catch (error) {
-      console.error('❌ Error fetching article by slug:', error);
+      errorHandler.logError('Error fetching article by slug', error);
       return null;
     }
   }
 
   static async upsertArticle(articleData: Partial<ArticleInsert>): Promise<Article | null> {
     try {
-      // Invalidate article caches
-      apiCache.invalidatePattern('article.*');
-      
       // Calculate read time
       const wordCount = articleData.content ? articleData.content.trim().split(/\s+/).length : 0;
       const readTime = Math.max(1, Math.ceil(wordCount / 200));
@@ -545,9 +461,9 @@ export class DatabaseService {
       // Sanitize inputs
       const sanitizedData: Partial<ArticleInsert> = {
         ...articleData,
-        title: articleData.title ? this.sanitizeString(articleData.title) : undefined,
-        excerpt: articleData.excerpt ? this.sanitizeString(articleData.excerpt) : undefined,
-        slug: articleData.title ? this.generateSlug(articleData.title) : articleData.slug,
+        title: articleData.title ? SecurityUtils.sanitizeInput(articleData.title) : undefined,
+        excerpt: articleData.excerpt ? SecurityUtils.sanitizeInput(articleData.excerpt) : undefined,
+        slug: articleData.title ? SecurityUtils.generateSlug(articleData.title) : articleData.slug,
         read_time: readTime,
       };
 
@@ -565,16 +481,13 @@ export class DatabaseService {
       if (error) throw new DatabaseError('Failed to upsert article', error);
       return data;
     } catch (error) {
-      console.error('Error upserting article:', error);
+      errorHandler.logError('Error upserting article', error);
       throw error;
     }
   }
 
   static async deleteArticle(id: string): Promise<boolean> {
     try {
-      // Invalidate article caches
-      apiCache.invalidatePattern('article.*');
-      
       const { error } = await supabase
         .from('articles')
         .delete()
@@ -583,7 +496,7 @@ export class DatabaseService {
       if (error) throw new DatabaseError('Failed to delete article', error);
       return true;
     } catch (error) {
-      console.error('Error deleting article:', error);
+      errorHandler.logError('Error deleting article', error);
       return false;
     }
   }
@@ -591,22 +504,18 @@ export class DatabaseService {
   // Certification operations
   static async upsertCertification(certData: Partial<CertificationInsert>): Promise<Certification | null> {
     try {
-      // Invalidate profile and certification caches
-      apiCache.invalidatePattern('profile:.*');
-      apiCache.invalidatePattern('certification:.*');
-      
       // Sanitize inputs
       const sanitizedData: Partial<CertificationInsert> = {
         ...certData,
-        name: certData.name ? this.sanitizeString(certData.name) : undefined,
-        issuer: certData.issuer ? this.sanitizeString(certData.issuer) : undefined,
+        name: certData.name ? SecurityUtils.sanitizeInput(certData.name) : undefined,
+        issuer: certData.issuer ? SecurityUtils.sanitizeInput(certData.issuer) : undefined,
       };
 
       // Validate URLs
-      if (sanitizedData.validation_url && !this.isValidUrl(sanitizedData.validation_url)) {
+      if (sanitizedData.validation_url && !SecurityUtils.isValidUrl(sanitizedData.validation_url)) {
         throw new Error('Invalid validation URL');
       }
-      if (sanitizedData.logo_url && !this.isValidUrl(sanitizedData.logo_url)) {
+      if (sanitizedData.logo_url && !SecurityUtils.isValidUrl(sanitizedData.logo_url)) {
         throw new Error('Invalid logo URL');
       }
 
@@ -619,17 +528,13 @@ export class DatabaseService {
       if (error) throw new DatabaseError('Failed to upsert certification', error);
       return data;
     } catch (error) {
-      console.error('Error upserting certification:', error);
+      errorHandler.logError('Error upserting certification', error);
       throw error;
     }
   }
 
   static async deleteCertification(id: string): Promise<boolean> {
     try {
-      // Invalidate profile and certification caches
-      apiCache.invalidatePattern('profile:.*');
-      apiCache.invalidatePattern('certification:.*');
-      
       const { error } = await supabase
         .from('certifications')
         .delete()
@@ -638,7 +543,7 @@ export class DatabaseService {
       if (error) throw new DatabaseError('Failed to delete certification', error);
       return true;
     } catch (error) {
-      console.error('Error deleting certification:', error);
+      errorHandler.logError('Error deleting certification', error);
       return false;
     }
   }

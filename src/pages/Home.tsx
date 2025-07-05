@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { DatabaseService } from '../lib/supabase';
 import { ChevronDown, Github, Linkedin, Mail, Terminal, Shield, Bug, BookOpen, Star } from 'lucide-react';
+import { DatabaseService, type Profile, type Writeup, type Article } from '../lib/supabase';
+import { SecurityUtils } from '../lib/security';
+import { errorHandler } from '../lib/errorHandler';
+import LoadingSpinner from '../components/LoadingSpinner';
 import GlitchText from '../components/GlitchText';
 import AnimatedCard from '../components/AnimatedCard';
-import { useProfile, useWriteups, useArticles } from '../hooks/useDataFetching';
 
 export default function Home() {
-  const [profile, setProfile] = useState(null);
-  const [recentWriteups, setRecentWriteups] = useState([]);
-  const [featuredArticles, setFeaturedArticles] = useState([]);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [recentWriteups, setRecentWriteups] = useState<Writeup[]>([]);
+  const [featuredArticles, setFeaturedArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -19,6 +22,7 @@ export default function Home() {
   const loadData = async () => {
     try {
       setLoading(true);
+      setError(null);
       
       // Load data in parallel for better performance
       const [profileData, writeupsData, articlesData] = await Promise.all([
@@ -31,7 +35,10 @@ export default function Home() {
       setRecentWriteups(writeupsData || []);
       setFeaturedArticles(articlesData || []);
     } catch (error) {
-      console.error('Error loading data:', error);
+      const errorMessage = errorHandler.createUserFriendlyMessage(error);
+      setError(errorMessage);
+      errorHandler.logError('Error loading home page data', error);
+      
       // Set default values on error
       setProfile(null);
       setRecentWriteups([]);
@@ -41,35 +48,39 @@ export default function Home() {
     }
   };
 
-  // Remove the hook-based loading logic
-  // const { data: profile, loading: profileLoading } = useProfile();
-  // const { data: writeupsData, loading: writeupsLoading } = useWriteups({ published: true, limit: 2 });
-  // const { data: articlesData, loading: articlesLoading } = useArticles({ published: true, featured: true, limit: 2 });
-
-  // Ensure arrays are never null
-  // const recentWriteups = writeupsData || [];
-  // const featuredArticles = articlesData || [];
-  // const loading = profileLoading || writeupsLoading || articlesLoading;
-
   const scrollToContent = () => {
     document.getElementById('content')?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Secure URL validation
-  const isValidUrl = (url: string): boolean => {
-    try {
-      const urlObj = new URL(url);
-      return ['http:', 'https:'].includes(urlObj.protocol);
-    } catch {
-      return false;
-    }
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="text-blue-600 dark:text-green-400 font-mono text-sm sm:text-base transition-colors duration-300">
-          Loading...
+      <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50 dark:bg-black transition-colors duration-300">
+        <LoadingSpinner size="lg" text="Loading portfolio..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50 dark:bg-black transition-colors duration-300">
+        <div className="text-center max-w-md">
+          <div className="text-red-600 dark:text-red-400 mb-4">
+            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+            Unable to load portfolio
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            {error}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
@@ -119,7 +130,7 @@ export default function Home() {
           </div>
 
           <div className="flex justify-center items-center space-x-6">
-            {profile?.github_url && isValidUrl(profile.github_url) && (
+            {profile?.github_url && SecurityUtils.isValidUrl(profile.github_url) && (
               <a 
                 href={profile.github_url} 
                 target="_blank"
@@ -130,7 +141,7 @@ export default function Home() {
                 <Github className="w-6 h-6" />
               </a>
             )}
-            {profile?.linkedin_url && isValidUrl(profile.linkedin_url) && (
+            {profile?.linkedin_url && SecurityUtils.isValidUrl(profile.linkedin_url) && (
               <a 
                 href={profile.linkedin_url} 
                 target="_blank"

@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Github, Linkedin, Mail, MapPin, Calendar, Award, ExternalLink } from 'lucide-react';
-import { DatabaseService } from '../lib/supabase';
+import { DatabaseService, type Profile, type Certification } from '../lib/supabase';
+import { SecurityUtils } from '../lib/security';
+import { errorHandler } from '../lib/errorHandler';
+import LoadingSpinner from '../components/LoadingSpinner';
 import GlitchText from '../components/GlitchText';
 import AnimatedCard from '../components/AnimatedCard';
-import { useProfile } from '../hooks/useDataFetching';
-import { type Profile, type Certification } from '../lib/supabase';
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadProfile();
@@ -18,37 +20,24 @@ export default function ProfilePage() {
   const loadProfile = async () => {
     try {
       setLoading(true);
+      setError(null);
       const profileData = await DatabaseService.getProfile();
       setProfile(profileData);
       if (profileData) {
         setCertifications(profileData.certifications || []);
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      const errorMessage = errorHandler.createUserFriendlyMessage(error);
+      setError(errorMessage);
+      errorHandler.logError('Error loading profile', error);
     } finally {
       setLoading(false);
     }
   };
 
-  /* useEffect(() => {
-    if (profile) {
-      setCertifications(profile.certifications || []);
-    }
-  }, [profile]); */
-
-  // Secure URL validation
-  const isValidUrl = (url: string): boolean => {
-    try {
-      const urlObj = new URL(url);
-      return ['http:', 'https:'].includes(urlObj.protocol);
-    } catch {
-      return false;
-    }
-  };
-
   // Secure certification URL validation
   const isValidCertificationUrl = (cert: Certification): boolean => {
-    return isValidUrl(cert.validation_url) && isValidUrl(cert.logo_url);
+    return SecurityUtils.isValidUrl(cert.validation_url) && SecurityUtils.isValidUrl(cert.logo_url);
   };
 
   // Format date for display
@@ -68,8 +57,38 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center px-4 bg-gray-50 dark:bg-black transition-colors duration-300">
-        <div className="text-blue-600 dark:text-green-400 font-mono text-sm sm:text-base transition-colors duration-300">Loading profile...</div>
+      <div className="min-h-screen pt-16 sm:pt-20 bg-gray-50 dark:bg-black transition-colors duration-300">
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <LoadingSpinner size="lg" text="Loading profile..." />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen pt-16 sm:pt-20 bg-gray-50 dark:bg-black transition-colors duration-300">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+          <div className="text-center">
+            <div className="text-red-600 dark:text-red-400 mb-4">
+              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              Unable to load profile
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              {error}
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -120,7 +139,7 @@ export default function ProfilePage() {
               </p>
               
               <div className="flex justify-center space-x-3 sm:space-x-4 mb-4 sm:mb-6">
-                {profile?.github_url && isValidUrl(profile.github_url) && (
+                {profile?.github_url && SecurityUtils.isValidUrl(profile.github_url) && (
                   <a 
                     href={profile.github_url} 
                     target="_blank"
@@ -131,7 +150,7 @@ export default function ProfilePage() {
                     <Github className="w-4 h-4 sm:w-5 sm:h-5" />
                   </a>
                 )}
-                {profile?.linkedin_url && isValidUrl(profile.linkedin_url) && (
+                {profile?.linkedin_url && SecurityUtils.isValidUrl(profile.linkedin_url) && (
                   <a 
                     href={profile.linkedin_url} 
                     target="_blank"
