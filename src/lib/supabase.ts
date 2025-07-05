@@ -1,208 +1,440 @@
-// Updated Supabase implementation with local storage
-import { localDB } from './localStorage';
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from './database.types';
 
-export type Profile = {
-  id: string;
-  name: string;
-  title: string;
-  bio: string;
-  skills: string[];
-  experience: string;
-  avatar_url?: string;
-  github_url?: string;
-  linkedin_url?: string;
-  twitter_url?: string;
-  certifications?: Certification[];
-  created_at: string;
-  updated_at: string;
-};
+// Environment variables validation
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export type Certification = {
-  id: string;
-  name: string;
-  issuer: string;
-  validation_url: string;
-  issue_date: string;
-  expiry_date?: string;
-  logo_url: string;
-};
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables. Please check your .env file.');
+}
 
-export type Writeup = {
-  id: string;
-  title: string;
-  slug: string;
-  content: string;
-  excerpt: string;
-  category: 'ctf' | 'bug-bounty';
-  difficulty: 'easy' | 'medium' | 'hard';
-  tags: string[];
-  published: boolean;
-  created_at: string;
-  updated_at: string;
-};
+// Validate URL format
+try {
+  new URL(supabaseUrl);
+} catch {
+  throw new Error('Invalid Supabase URL format');
+}
 
-export type Article = {
-  id: string;
-  title: string;
-  slug: string;
-  content: string;
-  excerpt: string;
-  category: 'tutorial' | 'news' | 'opinion' | 'tools' | 'career';
-  tags: string[];
-  published: boolean;
-  featured: boolean;
-  read_time: number;
-  created_at: string;
-  updated_at: string;
-};
+// Create Supabase client with security configurations
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce', // Use PKCE flow for better security
+  },
+  db: {
+    schema: 'public',
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'cybersec-portfolio@1.0.0',
+    },
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10, // Rate limiting
+    },
+  },
+});
 
-// Query builder class to handle chaining
-class QueryBuilder {
-  private table: string;
-  private filters: Array<{column: string, value: any}> = [];
-  private orderBy: {column: string, ascending: boolean} | null = null;
-  private limitCount: number | null = null;
+// Types for better type safety
+export type Profile = Database['public']['Tables']['profiles']['Row'];
+export type ProfileInsert = Database['public']['Tables']['profiles']['Insert'];
+export type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 
-  constructor(table: string) {
-    this.table = table;
+export type Certification = Database['public']['Tables']['certifications']['Row'];
+export type CertificationInsert = Database['public']['Tables']['certifications']['Insert'];
+export type CertificationUpdate = Database['public']['Tables']['certifications']['Update'];
+
+export type Writeup = Database['public']['Tables']['writeups']['Row'];
+export type WriteupInsert = Database['public']['Tables']['writeups']['Insert'];
+export type WriteupUpdate = Database['public']['Tables']['writeups']['Update'];
+
+export type Article = Database['public']['Tables']['articles']['Row'];
+export type ArticleInsert = Database['public']['Tables']['articles']['Insert'];
+export type ArticleUpdate = Database['public']['Tables']['articles']['Update'];
+
+// Utility functions for secure data operations
+export class SupabaseService {
+  // Input sanitization helper
+  private static sanitizeString(input: string): string {
+    return input
+      .replace(/[<>]/g, '') // Remove angle brackets
+      .replace(/javascript:/gi, '') // Remove javascript: protocol
+      .replace(/on\w+=/gi, '') // Remove event handlers
+      .replace(/script/gi, '') // Remove script tags
+      .trim();
   }
 
-  eq(column: string, value: any) {
-    this.filters.push({column, value});
-    return this;
-  }
-
-  order(column: string, options: {ascending?: boolean} = {}) {
-    this.orderBy = {column, ascending: options.ascending !== false};
-    return this;
-  }
-
-  limit(count: number) {
-    this.limitCount = count;
-    return this;
-  }
-
-  async single() {
-    const result = await this.execute();
-    if (result.data && result.data.length > 0) {
-      return {data: result.data[0], error: null};
-    }
-    return {data: null, error: {code: 'PGRST116', message: 'No data found'}};
-  }
-
-  then(callback: (result: {data: any[], error: any}) => any) {
-    return this.execute().then(callback);
-  }
-
-  private async execute() {
+  // URL validation helper
+  private static isValidUrl(url: string): boolean {
     try {
-      let data = localDB.select(this.table as any);
+      const urlObj = new URL(url);
+      return ['http:', 'https:'].includes(urlObj.protocol);
+    } catch {
+      return false;
+    }
+  }
 
-      // Apply filters
-      for (const filter of this.filters) {
-        data = data.filter(item => {
-          const value = item[filter.column as keyof typeof item];
-          return value === filter.value;
-        });
+  // Slug generation helper
+  private static generateSlug(title: string): string {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single
+      .trim()
+      .slice(0, 100); // Limit length
+  }
+
+  // Profile operations
+  static async getProfile(userId?: string): Promise<Profile | null> {
+    try {
+      const query = supabase
+        .from('profiles')
+        .select(`
+          *,
+          certifications (*)
+        `)
+        .single();
+
+      if (userId) {
+        query.eq('user_id', userId);
       }
 
-      // Apply ordering
-      if (this.orderBy) {
-        data.sort((a, b) => {
-          const aVal = a[this.orderBy!.column as keyof typeof a];
-          const bVal = b[this.orderBy!.column as keyof typeof b];
-          
-          if (this.orderBy!.column === 'created_at') {
-            const aTime = new Date(aVal as string).getTime();
-            const bTime = new Date(bVal as string).getTime();
-            return this.orderBy!.ascending ? aTime - bTime : bTime - aTime;
-          }
-          
-          if (aVal < bVal) return this.orderBy!.ascending ? -1 : 1;
-          if (aVal > bVal) return this.orderBy!.ascending ? 1 : -1;
-          return 0;
-        });
+      const { data, error } = await query;
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
       }
 
-      // Apply limit
-      if (this.limitCount) {
-        data = data.slice(0, this.limitCount);
-      }
-
-      return {data, error: null};
+      return data;
     } catch (error) {
-      return {data: [], error};
+      console.error('Error fetching profile:', error);
+      return null;
+    }
+  }
+
+  static async upsertProfile(profileData: Partial<ProfileInsert>): Promise<Profile | null> {
+    try {
+      // Sanitize inputs
+      const sanitizedData: Partial<ProfileInsert> = {
+        ...profileData,
+        name: profileData.name ? this.sanitizeString(profileData.name) : undefined,
+        title: profileData.title ? this.sanitizeString(profileData.title) : undefined,
+        bio: profileData.bio ? this.sanitizeString(profileData.bio) : undefined,
+        experience: profileData.experience ? this.sanitizeString(profileData.experience) : undefined,
+      };
+
+      // Validate URLs
+      if (sanitizedData.github_url && !this.isValidUrl(sanitizedData.github_url)) {
+        throw new Error('Invalid GitHub URL');
+      }
+      if (sanitizedData.linkedin_url && !this.isValidUrl(sanitizedData.linkedin_url)) {
+        throw new Error('Invalid LinkedIn URL');
+      }
+      if (sanitizedData.twitter_url && !this.isValidUrl(sanitizedData.twitter_url)) {
+        throw new Error('Invalid Twitter URL');
+      }
+      if (sanitizedData.avatar_url && !this.isValidUrl(sanitizedData.avatar_url)) {
+        throw new Error('Invalid Avatar URL');
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .upsert(sanitizedData)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error upserting profile:', error);
+      throw error;
+    }
+  }
+
+  // Writeup operations
+  static async getWriteups(options: {
+    published?: boolean;
+    category?: string;
+    limit?: number;
+    offset?: number;
+    search?: string;
+  } = {}): Promise<Writeup[]> {
+    try {
+      let query = supabase
+        .from('writeups')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (options.published !== undefined) {
+        query = query.eq('published', options.published);
+      }
+
+      if (options.category) {
+        query = query.eq('category', options.category);
+      }
+
+      if (options.search) {
+        const sanitizedSearch = this.sanitizeString(options.search);
+        query = query.textSearch('title,excerpt,content', sanitizedSearch);
+      }
+
+      if (options.limit) {
+        query = query.limit(options.limit);
+      }
+
+      if (options.offset) {
+        query = query.range(options.offset, options.offset + (options.limit || 10) - 1);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching writeups:', error);
+      return [];
+    }
+  }
+
+  static async getWriteupBySlug(slug: string): Promise<Writeup | null> {
+    try {
+      const sanitizedSlug = this.sanitizeString(slug);
+      
+      const { data, error } = await supabase
+        .from('writeups')
+        .select('*')
+        .eq('slug', sanitizedSlug)
+        .eq('published', true)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching writeup by slug:', error);
+      return null;
+    }
+  }
+
+  static async upsertWriteup(writeupData: Partial<WriteupInsert>): Promise<Writeup | null> {
+    try {
+      // Sanitize inputs
+      const sanitizedData: Partial<WriteupInsert> = {
+        ...writeupData,
+        title: writeupData.title ? this.sanitizeString(writeupData.title) : undefined,
+        excerpt: writeupData.excerpt ? this.sanitizeString(writeupData.excerpt) : undefined,
+        slug: writeupData.title ? this.generateSlug(writeupData.title) : writeupData.slug,
+      };
+
+      // Validate required fields
+      if (!sanitizedData.title || !sanitizedData.content) {
+        throw new Error('Title and content are required');
+      }
+
+      const { data, error } = await supabase
+        .from('writeups')
+        .upsert(sanitizedData)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error upserting writeup:', error);
+      throw error;
+    }
+  }
+
+  static async deleteWriteup(id: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('writeups')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error deleting writeup:', error);
+      return false;
+    }
+  }
+
+  // Article operations
+  static async getArticles(options: {
+    published?: boolean;
+    featured?: boolean;
+    category?: string;
+    limit?: number;
+    offset?: number;
+    search?: string;
+  } = {}): Promise<Article[]> {
+    try {
+      let query = supabase
+        .from('articles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (options.published !== undefined) {
+        query = query.eq('published', options.published);
+      }
+
+      if (options.featured !== undefined) {
+        query = query.eq('featured', options.featured);
+      }
+
+      if (options.category) {
+        query = query.eq('category', options.category);
+      }
+
+      if (options.search) {
+        const sanitizedSearch = this.sanitizeString(options.search);
+        query = query.textSearch('title,excerpt,content', sanitizedSearch);
+      }
+
+      if (options.limit) {
+        query = query.limit(options.limit);
+      }
+
+      if (options.offset) {
+        query = query.range(options.offset, options.offset + (options.limit || 10) - 1);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching articles:', error);
+      return [];
+    }
+  }
+
+  static async getArticleBySlug(slug: string): Promise<Article | null> {
+    try {
+      const sanitizedSlug = this.sanitizeString(slug);
+      
+      const { data, error } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('slug', sanitizedSlug)
+        .eq('published', true)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching article by slug:', error);
+      return null;
+    }
+  }
+
+  static async upsertArticle(articleData: Partial<ArticleInsert>): Promise<Article | null> {
+    try {
+      // Calculate read time
+      const wordCount = articleData.content ? articleData.content.trim().split(/\s+/).length : 0;
+      const readTime = Math.max(1, Math.ceil(wordCount / 200));
+
+      // Sanitize inputs
+      const sanitizedData: Partial<ArticleInsert> = {
+        ...articleData,
+        title: articleData.title ? this.sanitizeString(articleData.title) : undefined,
+        excerpt: articleData.excerpt ? this.sanitizeString(articleData.excerpt) : undefined,
+        slug: articleData.title ? this.generateSlug(articleData.title) : articleData.slug,
+        read_time: readTime,
+      };
+
+      // Validate required fields
+      if (!sanitizedData.title || !sanitizedData.content) {
+        throw new Error('Title and content are required');
+      }
+
+      const { data, error } = await supabase
+        .from('articles')
+        .upsert(sanitizedData)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error upserting article:', error);
+      throw error;
+    }
+  }
+
+  static async deleteArticle(id: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('articles')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error deleting article:', error);
+      return false;
+    }
+  }
+
+  // Certification operations
+  static async upsertCertification(certData: Partial<CertificationInsert>): Promise<Certification | null> {
+    try {
+      // Sanitize inputs
+      const sanitizedData: Partial<CertificationInsert> = {
+        ...certData,
+        name: certData.name ? this.sanitizeString(certData.name) : undefined,
+        issuer: certData.issuer ? this.sanitizeString(certData.issuer) : undefined,
+      };
+
+      // Validate URLs
+      if (sanitizedData.validation_url && !this.isValidUrl(sanitizedData.validation_url)) {
+        throw new Error('Invalid validation URL');
+      }
+      if (sanitizedData.logo_url && !this.isValidUrl(sanitizedData.logo_url)) {
+        throw new Error('Invalid logo URL');
+      }
+
+      const { data, error } = await supabase
+        .from('certifications')
+        .upsert(sanitizedData)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error upserting certification:', error);
+      throw error;
+    }
+  }
+
+  static async deleteCertification(id: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('certifications')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error deleting certification:', error);
+      return false;
     }
   }
 }
 
-// Supabase-like API with local storage backend
-export const supabase = {
-  from: (table: string) => ({
-    select: (columns: string = '*') => new QueryBuilder(table),
-    
-    insert: (data: any) => ({
-      then: async (callback: any) => {
-        try {
-          const success = localDB.insert(table as any, data);
-          if (success) {
-            return callback({ data: data, error: null });
-          } else {
-            return callback({ data: null, error: { message: 'Insert failed' } });
-          }
-        } catch (error) {
-          return callback({ data: null, error });
-        }
-      }
-    }),
-    
-    update: (data: any) => ({
-      eq: (column: string, value: any) => ({
-        then: async (callback: any) => {
-          try {
-            const success = localDB.update(table as any, value, data);
-            if (success) {
-              return callback({ data: data, error: null });
-            } else {
-              return callback({ data: null, error: { message: 'Update failed' } });
-            }
-          } catch (error) {
-            return callback({ data: null, error });
-          }
-        }
-      })
-    }),
-    
-    upsert: (data: any) => ({
-      then: async (callback: any) => {
-        try {
-          const success = localDB.upsert(table as any, data);
-          if (success) {
-            return callback({ data: data, error: null });
-          } else {
-            return callback({ data: null, error: { message: 'Upsert failed' } });
-          }
-        } catch (error) {
-          return callback({ data: null, error });
-        }
-      }
-    }),
-    
-    delete: () => ({
-      eq: (column: string, value: any) => ({
-        then: async (callback: any) => {
-          try {
-            const success = localDB.delete(table as any, value);
-            if (success) {
-              return callback({ data: null, error: null });
-            } else {
-              return callback({ data: null, error: { message: 'Delete failed' } });
-            }
-          } catch (error) {
-            return callback({ data: null, error });
-          }
-        }
-      })
-    })
-  })
-};
+// Export the service as default
+export default SupabaseService;

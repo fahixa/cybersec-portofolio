@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Shield, Eye, EyeOff, Lock, AlertTriangle } from 'lucide-react';
+import { Shield, Eye, EyeOff, Lock, AlertTriangle, UserPlus } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import GlitchText from '../../components/GlitchText';
 
@@ -10,11 +10,10 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [attempts, setAttempts] = useState(0);
-  const [isLocked, setIsLocked] = useState(false);
-  const [lockTimeRemaining, setLockTimeRemaining] = useState(0);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [message, setMessage] = useState('');
   
-  const { signIn, user } = useAuth();
+  const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -26,38 +25,6 @@ export default function Login() {
     }
   }, [user, navigate, location]);
 
-  // Handle account lockout
-  useEffect(() => {
-    const lockData = localStorage.getItem('cybersec-login-lock');
-    if (lockData) {
-      const { lockUntil, attempts: savedAttempts } = JSON.parse(lockData);
-      const now = Date.now();
-      
-      if (now < lockUntil) {
-        setIsLocked(true);
-        setLockTimeRemaining(Math.ceil((lockUntil - now) / 1000));
-        setAttempts(savedAttempts);
-        
-        const interval = setInterval(() => {
-          const remaining = Math.ceil((lockUntil - Date.now()) / 1000);
-          if (remaining <= 0) {
-            setIsLocked(false);
-            setLockTimeRemaining(0);
-            localStorage.removeItem('cybersec-login-lock');
-            clearInterval(interval);
-          } else {
-            setLockTimeRemaining(remaining);
-          }
-        }, 1000);
-        
-        return () => clearInterval(interval);
-      } else {
-        localStorage.removeItem('cybersec-login-lock');
-        setAttempts(savedAttempts);
-      }
-    }
-  }, []);
-
   // Secure input sanitization
   const sanitizeInput = (input: string): string => {
     return input
@@ -65,111 +32,72 @@ export default function Login() {
       .replace(/javascript:/gi, '') // Remove javascript: protocol
       .replace(/on\w+=/gi, '') // Remove event handlers
       .replace(/script/gi, '') // Remove script tags
-      .trim()
-      .slice(0, 100); // Limit length
+      .trim();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (isLocked) {
-      setError(`Account locked. Try again in ${lockTimeRemaining} seconds.`);
-      return;
-    }
-
     setLoading(true);
     setError('');
+    setMessage('');
 
     try {
       // Sanitize inputs
       const sanitizedEmail = sanitizeInput(email);
       const sanitizedPassword = password.slice(0, 100); // Don't sanitize password content, just limit length
 
-      await signIn(sanitizedEmail, sanitizedPassword);
-      
-      // Clear failed attempts on successful login
-      localStorage.removeItem('cybersec-login-lock');
-      setAttempts(0);
-      
-      const from = (location.state as any)?.from?.pathname || '/authorize/dashboard';
-      navigate(from, { replace: true });
-    } catch (error: any) {
-      const newAttempts = attempts + 1;
-      setAttempts(newAttempts);
-      
-      if (newAttempts >= 3) {
-        // Lock account for 15 minutes after 3 failed attempts
-        const lockUntil = Date.now() + (15 * 60 * 1000);
-        localStorage.setItem('cybersec-login-lock', JSON.stringify({
-          lockUntil,
-          attempts: newAttempts
-        }));
-        setIsLocked(true);
-        setLockTimeRemaining(15 * 60);
-        setError('Too many failed attempts. Account locked for 15 minutes.');
+      if (isSignUp) {
+        await signUp(sanitizedEmail, sanitizedPassword);
+        setMessage('Account created! Please check your email for verification.');
+        setIsSignUp(false);
       } else {
-        setError(`${error.message} (${3 - newAttempts} attempts remaining)`);
+        await signIn(sanitizedEmail, sanitizedPassword);
+        const from = (location.state as any)?.from?.pathname || '/authorize/dashboard';
+        navigate(from, { replace: true });
       }
+    } catch (error: any) {
+      setError(error.message || 'An error occurred');
     } finally {
       setLoading(false);
     }
   };
 
-  const fillDemoCredentials = () => {
-    setEmail('admin@cybersec.local');
-    setPassword('CyberSec2024!');
-  };
-
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-white flex items-center justify-center relative overflow-hidden px-4 transition-colors duration-300">
-      <div className="absolute inset-0 bg-gradient-to-br from-red-100/20 via-gray-50 to-blue-100/20 dark:from-red-900/20 dark:via-black dark:to-green-900/20 transition-colors duration-300"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-100/20 via-gray-50 to-purple-100/20 dark:from-blue-900/20 dark:via-black dark:to-green-900/20 transition-colors duration-300"></div>
       
       <div className="relative z-10 max-w-md w-full">
         <div className="bg-white/95 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-200 dark:border-green-500/30 rounded-lg p-6 sm:p-8 shadow-xl dark:shadow-2xl transition-colors duration-300">
           {/* Header */}
           <div className="text-center mb-6 sm:mb-8">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 bg-red-100 dark:bg-red-500/20 rounded-full flex items-center justify-center border border-red-300 dark:border-red-500/50 transition-colors duration-300">
-              <Lock className="w-6 h-6 sm:w-8 sm:h-8 text-red-600 dark:text-red-400 transition-colors duration-300" />
+            <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 bg-blue-100 dark:bg-green-500/20 rounded-full flex items-center justify-center border border-blue-300 dark:border-green-500/50 transition-colors duration-300">
+              {isSignUp ? (
+                <UserPlus className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 dark:text-green-400 transition-colors duration-300" />
+              ) : (
+                <Lock className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 dark:text-green-400 transition-colors duration-300" />
+              )}
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-red-600 dark:text-red-400 font-mono mb-2 transition-colors duration-300">
-              <GlitchText text="RESTRICTED ACCESS" />
+            <h1 className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-green-400 font-mono mb-2 transition-colors duration-300">
+              <GlitchText text={isSignUp ? "CREATE ACCOUNT" : "ADMIN ACCESS"} />
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 text-sm transition-colors duration-300">Authorization Required</p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm transition-colors duration-300">
+              {isSignUp ? "Join the cybersecurity community" : "Secure authentication required"}
+            </p>
           </div>
 
           {/* Security Warning */}
-          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-500/50 text-red-700 dark:text-red-400 p-3 sm:p-4 rounded-lg mb-4 sm:mb-6 text-sm transition-colors duration-300">
+          <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-500/50 text-blue-700 dark:text-blue-400 p-3 sm:p-4 rounded-lg mb-4 sm:mb-6 text-sm transition-colors duration-300">
             <div className="flex items-start">
               <AlertTriangle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
               <div>
                 <p className="font-semibold mb-1">Security Notice:</p>
-                <p className="text-xs">Unauthorized access attempts are logged and monitored.</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Demo Credentials (for development only) */}
-          <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-500/50 text-blue-700 dark:text-blue-400 p-3 sm:p-4 rounded-lg mb-4 sm:mb-6 text-sm transition-colors duration-300">
-            <div className="flex items-start">
-              <Shield className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="font-semibold mb-2">Demo Access:</p>
-                <p className="font-mono text-xs mb-1">Email: admin@cybersec.local</p>
-                <p className="font-mono text-xs mb-3">Password: CyberSec2024!</p>
-                <button
-                  type="button"
-                  onClick={fillDemoCredentials}
-                  disabled={isLocked}
-                  className="text-blue-600 dark:text-blue-300 hover:text-blue-500 dark:hover:text-blue-200 underline text-xs disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-300"
-                >
-                  Auto-fill credentials
-                </button>
+                <p className="text-xs">
+                  {isSignUp 
+                    ? "Your account will be secured with industry-standard encryption."
+                    : "All access attempts are logged and monitored."
+                  }
+                </p>
               </div>
             </div>
           </div>
@@ -184,16 +112,17 @@ export default function Login() {
             </div>
           )}
 
-          {/* Lockout Timer */}
-          {isLocked && (
-            <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-500/50 text-yellow-700 dark:text-yellow-400 p-3 rounded-lg mb-4 sm:mb-6 text-sm text-center transition-colors duration-300">
-              <Lock className="w-5 h-5 mx-auto mb-2" />
-              <p className="font-semibold">Account Locked</p>
-              <p className="text-xs">Time remaining: {formatTime(lockTimeRemaining)}</p>
+          {/* Success Message */}
+          {message && (
+            <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-500/50 text-green-700 dark:text-green-400 p-3 rounded-lg mb-4 sm:mb-6 text-sm transition-colors duration-300">
+              <div className="flex items-center">
+                <Shield className="w-4 h-4 mr-2 flex-shrink-0" />
+                {message}
+              </div>
             </div>
           )}
 
-          {/* Login Form */}
+          {/* Auth Form */}
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
@@ -204,10 +133,9 @@ export default function Login() {
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(sanitizeInput(e.target.value))}
-                disabled={isLocked}
-                className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed text-sm transition-colors duration-300"
+                className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 text-sm transition-colors duration-300"
                 placeholder="Enter your email"
-                maxLength={100}
+                maxLength={254}
                 required
               />
             </div>
@@ -222,51 +150,66 @@ export default function Login() {
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value.slice(0, 100))}
-                  disabled={isLocked}
-                  className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 pr-10 disabled:opacity-50 disabled:cursor-not-allowed text-sm transition-colors duration-300"
-                  placeholder="Enter your password"
+                  className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 pr-10 text-sm transition-colors duration-300"
+                  placeholder={isSignUp ? "Create a strong password" : "Enter your password"}
+                  minLength={6}
                   maxLength={100}
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  disabled={isLocked}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-300"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-300"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              {isSignUp && (
+                <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 transition-colors duration-300">
+                  Minimum 6 characters required
+                </p>
+              )}
             </div>
 
             <button
               type="submit"
-              disabled={loading || isLocked}
+              disabled={loading}
               className="w-full bg-blue-600 dark:bg-green-600 hover:bg-blue-700 dark:hover:bg-green-500 disabled:bg-gray-400 dark:disabled:bg-gray-600 text-white dark:text-black font-bold py-2 px-4 rounded-lg transition-colors disabled:cursor-not-allowed flex items-center justify-center text-sm"
             >
               {loading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white dark:border-black mr-2"></div>
-                  Authenticating...
+                  {isSignUp ? 'Creating Account...' : 'Authenticating...'}
                 </>
               ) : (
                 <>
                   <Shield className="w-4 h-4 mr-2" />
-                  {isLocked ? 'Account Locked' : 'Authorize Access'}
+                  {isSignUp ? 'Create Account' : 'Access Dashboard'}
                 </>
               )}
             </button>
           </form>
 
-          {/* Attempt Counter */}
-          {attempts > 0 && !isLocked && (
-            <div className="mt-4 text-center text-xs text-yellow-600 dark:text-yellow-400 transition-colors duration-300">
-              Failed attempts: {attempts}/3
-            </div>
-          )}
+          {/* Toggle Sign Up/Sign In */}
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setError('');
+                setMessage('');
+              }}
+              className="text-blue-600 dark:text-green-400 hover:text-blue-500 dark:hover:text-green-300 text-sm underline transition-colors duration-300"
+            >
+              {isSignUp 
+                ? 'Already have an account? Sign in' 
+                : 'Need an account? Sign up'
+              }
+            </button>
+          </div>
 
           <div className="mt-4 sm:mt-6 text-center text-xs text-gray-500 dark:text-gray-500 transition-colors duration-300">
-            Secure authentication system
+            Powered by Supabase Authentication
           </div>
         </div>
       </div>

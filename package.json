@@ -16,11 +16,12 @@
     "docker:export": "docker save cybersec-portfolio:latest > cybersec-portfolio.tar"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.50.3",
+    "lucide-react": "^0.456.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.28.0",
-    "lucide-react": "^0.456.0",
     "react-markdown": "^9.0.1",
+    "react-router-dom": "^6.28.0",
     "react-syntax-highlighter": "^15.5.0"
   },
   "devDependencies": {
