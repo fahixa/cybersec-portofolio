@@ -169,14 +169,6 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Admin Info */}
-          <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-600/30 transition-colors duration-300">
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Admin Access Only</h3>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
-              This system is restricted to authorized administrators only. 
-              If you need access, please contact the system administrator.
-            </p>
-          </div>
 
           <div className="mt-4 sm:mt-6 text-center text-xs text-gray-500 dark:text-gray-500 transition-colors duration-300">
             Secure Authentication System
