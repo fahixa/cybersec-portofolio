@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, Tag, Clock, ExternalLink, BookOpen, Star } from 'lucide-react';
-import { supabase, type Article } from '../lib/supabase';
+import { SupabaseService, type Article } from '../lib/supabase';
 import CyberBackground from '../components/CyberBackground';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -24,17 +24,14 @@ export const ArticleDetail: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      const { data, error } = await supabase
-        .from('articles')
-        .select('*')
-        .eq('slug', slug)
-        .eq('published', true)
-        .single();
-
-      if (error) {
+      console.log('Loading article with slug:', slug);
+      const data = await SupabaseService.getArticleBySlug(slug);
+      
+      if (!data) {
         throw new Error('Article not found');
       }
-
+      
+      console.log('Article loaded:', data);
       setArticle(data);
     } catch (err) {
       console.error('Error loading article:', err);

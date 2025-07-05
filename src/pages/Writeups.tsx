@@ -4,7 +4,7 @@ import { Terminal, Bug, Calendar, Clock, Tag } from 'lucide-react';
 import GlitchText from '../components/GlitchText';
 import AnimatedCard from '../components/AnimatedCard';
 import { SearchBar } from '../components/SearchBar';
-import { supabase, type Writeup } from '../lib/supabase';
+import { SupabaseService, type Writeup } from '../lib/supabase';
 
 export default function Writeups() {
   const [writeups, setWriteups] = useState<Writeup[]>([]);
@@ -23,19 +23,14 @@ export default function Writeups() {
 
   const loadWriteups = async () => {
     try {
-      const { data, error } = await supabase
-        .from('writeups')
-        .select('*')
-        .eq('published', true)
-        .order('created_at', { ascending: false });
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading writeups:', error);
-      } else {
-        setWriteups(data || []);
-      }
+      console.log('Loading writeups from Supabase...');
+      const data = await SupabaseService.getWriteups({ published: true });
+      console.log('Writeups loaded:', data);
+      setWriteups(data);
     } catch (error) {
       console.error('Error loading writeups:', error);
+      // Fallback to empty array if Supabase fails
+      setWriteups([]);
     } finally {
       setLoading(false);
     }

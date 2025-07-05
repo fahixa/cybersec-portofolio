@@ -4,7 +4,7 @@ import { BookOpen, Calendar, Clock, Tag, Star, TrendingUp, User, Award } from 'l
 import GlitchText from '../components/GlitchText';
 import AnimatedCard from '../components/AnimatedCard';
 import { SearchBar } from '../components/SearchBar';
-import { supabase, type Article } from '../lib/supabase';
+import { SupabaseService, type Article } from '../lib/supabase';
 
 export default function Articles() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -23,19 +23,14 @@ export default function Articles() {
 
   const loadArticles = async () => {
     try {
-      const { data, error } = await supabase
-        .from('articles')
-        .select('*')
-        .eq('published', true)
-        .order('created_at', { ascending: false });
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading articles:', error);
-      } else {
-        setArticles(data || []);
-      }
+      console.log('Loading articles from Supabase...');
+      const data = await SupabaseService.getArticles({ published: true });
+      console.log('Articles loaded:', data);
+      setArticles(data);
     } catch (error) {
       console.error('Error loading articles:', error);
+      // Fallback to empty array if Supabase fails
+      setArticles([]);
     } finally {
       setLoading(false);
     }

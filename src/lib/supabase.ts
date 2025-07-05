@@ -92,22 +92,34 @@ export class SupabaseService {
   // Profile operations
   static async getProfile(userId?: string): Promise<Profile | null> {
     try {
+      console.log('Fetching profile from Supabase...');
       const query = supabase
         .from('profiles')
-        .select(`
-          *,
-          certifications (*)
-        `)
-        .single();
+        .select('*')
+        .limit(1);
 
       if (userId) {
         query.eq('user_id', userId);
       }
 
-      const { data, error } = await query;
+      const { data, error } = await query.single();
 
       if (error && error.code !== 'PGRST116') {
-        throw error;
+        console.error('Profile fetch error:', error);
+        return null;
+      }
+
+      // Load certifications separately
+      if (data) {
+        const { data: certifications } = await supabase
+          .from('certifications')
+          .select('*')
+          .eq('profile_id', data.id);
+        
+        return {
+          ...data,
+          certifications: certifications || []
+        };
       }
 
       return data;

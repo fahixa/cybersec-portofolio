@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, Tag, Target, Clock, ExternalLink } from 'lucide-react';
-import { supabase, type Writeup } from '../lib/supabase';
+import { SupabaseService, type Writeup } from '../lib/supabase';
 import CyberBackground from '../components/CyberBackground';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -24,17 +24,14 @@ export const WriteupDetail: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      const { data, error } = await supabase
-        .from('writeups')
-        .select('*')
-        .eq('slug', slug)
-        .eq('published', true)
-        .single();
-
-      if (error) {
+      console.log('Loading writeup with slug:', slug);
+      const data = await SupabaseService.getWriteupBySlug(slug);
+      
+      if (!data) {
         throw new Error('Writeup not found');
       }
-
+      
+      console.log('Writeup loaded:', data);
       setWriteup(data);
     } catch (err) {
       console.error('Error loading writeup:', err);
