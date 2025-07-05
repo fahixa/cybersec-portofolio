@@ -430,10 +430,14 @@ export default function ProfileEdit() {
               <textarea
                 value={formData.experience}
                 onChange={(e) => setFormData({ ...formData, experience: sanitizeInput(e.target.value) })}
-                rows={3}
+                rows={15}
                 className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 text-sm sm:text-base transition-all duration-300"
-                maxLength={1000}
+                placeholder="Enter your professional experience here. You can use line breaks to separate different positions and experiences."
+                maxLength={5000}
               />
+              <p className="text-xs text-gray-500 dark:text-gray-400 transition-colors duration-300">
+                You can format your experience with line breaks. Each line will be displayed as a separate line on your profile.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mt-4 sm:mt-6">
