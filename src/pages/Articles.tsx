@@ -4,7 +4,7 @@ import { BookOpen, Calendar, Clock, Tag, Star, TrendingUp, User, Award } from 'l
 import GlitchText from '../components/GlitchText';
 import AnimatedCard from '../components/AnimatedCard';
 import { SearchBar } from '../components/SearchBar';
-import { SupabaseService, type Article } from '../lib/supabase';
+import { DatabaseService, type Article } from '../lib/supabase';
 
 export default function Articles() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -25,15 +25,15 @@ export default function Articles() {
     try {
       console.log('🔄 Loading articles...');
       
-      const connectionOk = await SupabaseService.testConnection();
+      const connectionOk = await DatabaseService.testConnection();
       if (!connectionOk) {
-        console.warn('⚠️ Supabase connection failed');
+        console.warn('⚠️ Database connection failed');
         setArticles([]);
         setLoading(false);
         return;
       }
       
-      const data = await SupabaseService.getArticles({ published: true });
+      const data = await DatabaseService.getArticles({ published: true });
       console.log('📊 Articles loaded:', data.length);
       setArticles(data);
     } catch (error) {

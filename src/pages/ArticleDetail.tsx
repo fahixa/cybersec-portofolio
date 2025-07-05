@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, Tag, Clock, ExternalLink, BookOpen, Star } from 'lucide-react';
-import { SupabaseService, type Article } from '../lib/supabase';
+import { DatabaseService, type Article } from '../lib/supabase';
 import CyberBackground from '../components/CyberBackground';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -25,7 +25,7 @@ export const ArticleDetail: React.FC = () => {
       setError(null);
       
       console.log('Loading article with slug:', slug);
-      const data = await SupabaseService.getArticleBySlug(slug);
+      const data = await DatabaseService.getArticleBySlug(slug);
       
       if (!data) {
         throw new Error('Article not found');

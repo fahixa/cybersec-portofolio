@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ChevronDown, Github, Linkedin, Mail, Terminal, Shield, Bug, BookOpen, Star } from 'lucide-react';
 import GlitchText from '../components/GlitchText';
 import AnimatedCard from '../components/AnimatedCard';
-import { SupabaseService, type Profile, type Writeup, type Article } from '../lib/supabase';
+import { DatabaseService, type Profile, type Writeup, type Article } from '../lib/supabase';
 
 export default function Home() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -22,18 +22,18 @@ export default function Home() {
       console.log('🔄 Starting data load...');
       
       // Test connection first with better error handling
-      const connectionOk = await SupabaseService.testConnection();
+      const connectionOk = await DatabaseService.testConnection();
       if (!connectionOk) {
-        console.warn('⚠️ Supabase connection failed, using fallback data');
+        console.warn('⚠️ Database connection failed, using fallback data');
         setLoading(false);
         return;
       }
       
       console.log('🔄 Loading data in parallel...');
       const [profileData, writeupsData, articlesData] = await Promise.all([
-        SupabaseService.getProfile(),
-        SupabaseService.getWriteups({ published: true, limit: 2 }),
-        SupabaseService.getArticles({ published: true, featured: true, limit: 2 })
+        DatabaseService.getProfile(),
+        DatabaseService.getWriteups({ published: true, limit: 2 }),
+        DatabaseService.getArticles({ published: true, featured: true, limit: 2 })
       ]);
 
       console.log('📊 Data loaded:', {

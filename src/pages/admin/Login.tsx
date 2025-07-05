@@ -179,7 +179,7 @@ export default function Login() {
           </div>
 
           <div className="mt-4 sm:mt-6 text-center text-xs text-gray-500 dark:text-gray-500 transition-colors duration-300">
-            Powered by Supabase Authentication
+            Secure Authentication System
           </div>
         </div>
       </div>

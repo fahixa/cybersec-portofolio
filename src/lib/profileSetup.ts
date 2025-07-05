@@ -1,4 +1,4 @@
-import { supabase, SupabaseService } from './supabase';
+import { supabase, DatabaseService } from './supabase';
 import type { ProfileInsert } from './supabase';
 
 export class ProfileSetup {
@@ -72,7 +72,7 @@ export class ProfileSetup {
         twitter_url: 'https://twitter.com/fakhrityhikmawan'
       };
 
-      const profile = await SupabaseService.upsertProfile(defaultProfile);
+      const profile = await DatabaseService.upsertProfile(defaultProfile);
       
       if (profile) {
         console.log('Default profile created successfully');
@@ -118,7 +118,7 @@ export class ProfileSetup {
       ];
 
       for (const cert of certifications) {
-        await SupabaseService.upsertCertification(cert);
+        await DatabaseService.upsertCertification(cert);
       }
 
       console.log('Sample certifications created');
@@ -232,7 +232,7 @@ exploit
       ];
 
       for (const writeup of writeups) {
-        await SupabaseService.upsertWriteup(writeup);
+        await DatabaseService.upsertWriteup(writeup);
       }
 
       console.log('Sample writeups created');
@@ -409,7 +409,7 @@ These tools form the foundation of any penetration tester's toolkit. Master thes
       ];
 
       for (const article of articles) {
-        await SupabaseService.upsertArticle(article);
+        await DatabaseService.upsertArticle(article);
       }
 
       console.log('Sample articles created');

@@ -14,12 +14,14 @@ A modern, responsive cybersecurity portfolio website built with React, TypeScrip
 
 ## 🚀 Tech Stack
 
-- **Frontend**: React 18 + TypeScript
+- **Frontend**: React 18 + TypeScript  
+- **Database**: PostgreSQL with real-time features
 - **Styling**: Tailwind CSS
 - **Build Tool**: Vite
 - **Icons**: Lucide React
 - **Routing**: React Router DOM
 - **Markdown**: React Markdown with syntax highlighting
+- **Authentication**: Secure JWT-based authentication
 - **Deployment**: Docker + Nginx
 
 ## 📦 Installation
@@ -38,7 +40,7 @@ A modern, responsive cybersecurity portfolio website built with React, TypeScrip
 3. **Set up environment variables**
    ```bash
    cp .env.example .env
-   # Edit .env with your configuration
+   # Edit .env with your database configuration
    ```
 
 4. **Start development server**
@@ -53,8 +55,8 @@ A modern, responsive cybersecurity portfolio website built with React, TypeScrip
 Create a `.env` file in the root directory:
 
 ```env
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_SUPABASE_URL=your_database_url
+VITE_SUPABASE_ANON_KEY=your_database_key
 ```
 
 ### Admin Access
@@ -166,6 +168,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Design Inspiration**: Modern cybersecurity aesthetics
 - **Icons**: [Lucide React](https://lucide.dev/)
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Database**: PostgreSQL with real-time capabilities
 - **Build Tool**: [Vite](https://vitejs.dev/)
 
 ## 📞 Support

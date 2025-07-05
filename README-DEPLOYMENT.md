@@ -38,7 +38,7 @@ docker save cybersec-portfolio:latest > cybersec-portfolio.tar
    - Admin: `http://your-server:3000/authorize`
 
 ## Admin Credentials
-- Email: `admin@cybersec.local`
+- Email: `fakhrityhikmawan@gmail.com`
 - Password: `CyberSec2024!`
 
 ## Features
@@ -46,7 +46,7 @@ docker save cybersec-portfolio:latest > cybersec-portfolio.tar
 - ✅ Optimized nginx config
 - ✅ Health check endpoint
 - ✅ Production ready
-- ✅ Local storage for data persistence
+- ✅ Database integration for data persistence
 
 ## File Structure
 ```

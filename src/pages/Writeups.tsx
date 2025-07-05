@@ -4,7 +4,7 @@ import { Terminal, Bug, Calendar, Clock, Tag } from 'lucide-react';
 import GlitchText from '../components/GlitchText';
 import AnimatedCard from '../components/AnimatedCard';
 import { SearchBar } from '../components/SearchBar';
-import { SupabaseService, type Writeup } from '../lib/supabase';
+import { DatabaseService, type Writeup } from '../lib/supabase';
 
 export default function Writeups() {
   const [writeups, setWriteups] = useState<Writeup[]>([]);
@@ -25,15 +25,15 @@ export default function Writeups() {
     try {
       console.log('🔄 Loading writeups...');
       
-      const connectionOk = await SupabaseService.testConnection();
+      const connectionOk = await DatabaseService.testConnection();
       if (!connectionOk) {
-        console.warn('⚠️ Supabase connection failed');
+        console.warn('⚠️ Database connection failed');
         setWriteups([]);
         setLoading(false);
         return;
       }
       
-      const data = await SupabaseService.getWriteups({ published: true });
+      const data = await DatabaseService.getWriteups({ published: true });
       console.log('📊 Writeups loaded:', data.length);
       setWriteups(data);
     } catch (error) {

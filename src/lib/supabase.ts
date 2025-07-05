@@ -6,13 +6,13 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Debug environment variables
-console.log('Supabase URL:', supabaseUrl);
-console.log('Supabase Anon Key:', supabaseAnonKey ? 'Set' : 'Missing');
+console.log('Database URL:', supabaseUrl);
+console.log('Database Key:', supabaseAnonKey ? 'Set' : 'Missing');
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ Missing Supabase environment variables');
+  console.error('❌ Missing database environment variables');
   console.error('Please check your .env file');
-  throw new Error('Supabase configuration missing');
+  throw new Error('Database configuration missing');
 }
 
 // Validate URL format
@@ -20,11 +20,11 @@ if (supabaseUrl) {
   try {
     new URL(supabaseUrl);
   } catch {
-    console.error('Invalid Supabase URL format:', supabaseUrl);
+    console.error('Invalid database URL format:', supabaseUrl);
   }
 }
 
-// Create Supabase client with enhanced error handling
+// Create database client with enhanced error handling
 export const supabase = createClient<Database>(
   supabaseUrl,
   supabaseAnonKey,
@@ -60,19 +60,19 @@ export type ArticleInsert = Database['public']['Tables']['articles']['Insert'];
 export type ArticleUpdate = Database['public']['Tables']['articles']['Update'];
 
 // Enhanced error handling
-class SupabaseError extends Error {
+class DatabaseError extends Error {
   constructor(message: string, public originalError?: any) {
     super(message);
-    this.name = 'SupabaseError';
+    this.name = 'DatabaseError';
   }
 }
 
 // Utility functions for secure data operations
-export class SupabaseService {
+export class DatabaseService {
   // Connection test
   static async testConnection(): Promise<boolean> {
     try {
-      console.log('🔄 Testing Supabase connection...');
+      console.log('🔄 Testing database connection...');
       const { error } = await supabase
         .from('profiles')
         .select('id')
@@ -84,7 +84,7 @@ export class SupabaseService {
         return false;
       }
       
-      console.log('✅ Supabase connection successful');
+      console.log('✅ Database connection successful');
       return true;
     } catch (error) {
       console.error('❌ Connection test error:', error);
@@ -126,7 +126,7 @@ export class SupabaseService {
   // Profile operations
   static async getProfile(userId?: string): Promise<Profile | null> {
     try {
-      console.log('🔄 Fetching profile from Supabase...');
+      console.log('🔄 Fetching profile from database...');
       
       let query = supabase
         .from('profiles')
@@ -145,7 +145,7 @@ export class SupabaseService {
           console.log('ℹ️ No profile found');
           return null;
         }
-        throw new SupabaseError('Failed to fetch profile', profileError);
+        throw new DatabaseError('Failed to fetch profile', profileError);
       }
 
       const profile = Array.isArray(profileData) ? profileData[0] : profileData;
@@ -214,7 +214,7 @@ export class SupabaseService {
         .select()
         .single();
 
-      if (error) throw new SupabaseError('Failed to upsert profile', error);
+      if (error) throw new DatabaseError('Failed to upsert profile', error);
       return data;
     } catch (error) {
       console.error('Error upserting profile:', error);
@@ -231,7 +231,7 @@ export class SupabaseService {
     search?: string;
   } = {}): Promise<Writeup[]> {
     try {
-      console.log('🔄 Fetching writeups from Supabase with options:', options);
+      console.log('🔄 Fetching writeups from database with options:', options);
       
       let query = supabase
         .from('writeups')
@@ -264,7 +264,7 @@ export class SupabaseService {
       if (error) {
         console.error('❌ Writeups fetch error:', error.message);
         console.error('Error details:', error);
-        throw new SupabaseError('Failed to fetch writeups', error);
+        throw new DatabaseError('Failed to fetch writeups', error);
       }
 
       console.log(`✅ Fetched ${data?.length || 0} writeups`);
@@ -293,7 +293,7 @@ export class SupabaseService {
           return null;
         }
         console.error('❌ Writeup fetch error:', error.message);
-        throw new SupabaseError('Failed to fetch writeup', error);
+        throw new DatabaseError('Failed to fetch writeup', error);
       }
 
       console.log('✅ Writeup loaded successfully:', data?.title);
@@ -325,7 +325,7 @@ export class SupabaseService {
         .select()
         .single();
 
-      if (error) throw new SupabaseError('Failed to upsert writeup', error);
+      if (error) throw new DatabaseError('Failed to upsert writeup', error);
       return data;
     } catch (error) {
       console.error('Error upserting writeup:', error);
@@ -340,7 +340,7 @@ export class SupabaseService {
         .delete()
         .eq('id', id);
 
-      if (error) throw new SupabaseError('Failed to delete writeup', error);
+      if (error) throw new DatabaseError('Failed to delete writeup', error);
       return true;
     } catch (error) {
       console.error('Error deleting writeup:', error);
@@ -358,7 +358,7 @@ export class SupabaseService {
     search?: string;
   } = {}): Promise<Article[]> {
     try {
-      console.log('🔄 Fetching articles from Supabase with options:', options);
+      console.log('🔄 Fetching articles from database with options:', options);
       
       let query = supabase
         .from('articles')
@@ -395,7 +395,7 @@ export class SupabaseService {
       if (error) {
         console.error('❌ Articles fetch error:', error.message);
         console.error('Error details:', error);
-        throw new SupabaseError('Failed to fetch articles', error);
+        throw new DatabaseError('Failed to fetch articles', error);
       }
 
       console.log(`✅ Fetched ${data?.length || 0} articles`);
@@ -424,7 +424,7 @@ export class SupabaseService {
           return null;
         }
         console.error('❌ Article fetch error:', error.message);
-        throw new SupabaseError('Failed to fetch article', error);
+        throw new DatabaseError('Failed to fetch article', error);
       }
 
       console.log('✅ Article loaded successfully:', data?.title);
@@ -461,7 +461,7 @@ export class SupabaseService {
         .select()
         .single();
 
-      if (error) throw new SupabaseError('Failed to upsert article', error);
+      if (error) throw new DatabaseError('Failed to upsert article', error);
       return data;
     } catch (error) {
       console.error('Error upserting article:', error);
@@ -476,7 +476,7 @@ export class SupabaseService {
         .delete()
         .eq('id', id);
 
-      if (error) throw new SupabaseError('Failed to delete article', error);
+      if (error) throw new DatabaseError('Failed to delete article', error);
       return true;
     } catch (error) {
       console.error('Error deleting article:', error);
@@ -508,7 +508,7 @@ export class SupabaseService {
         .select()
         .single();
 
-      if (error) throw new SupabaseError('Failed to upsert certification', error);
+      if (error) throw new DatabaseError('Failed to upsert certification', error);
       return data;
     } catch (error) {
       console.error('Error upserting certification:', error);
@@ -523,7 +523,7 @@ export class SupabaseService {
         .delete()
         .eq('id', id);
 
-      if (error) throw new SupabaseError('Failed to delete certification', error);
+      if (error) throw new DatabaseError('Failed to delete certification', error);
       return true;
     } catch (error) {
       console.error('Error deleting certification:', error);
@@ -533,4 +533,4 @@ export class SupabaseService {
 }
 
 // Export the service as default
-export default SupabaseService;
+export default DatabaseService;

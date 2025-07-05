@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Github, Linkedin, Mail, MapPin, Calendar, Award, ExternalLink } from 'lucide-react';
 import GlitchText from '../components/GlitchText';
 import AnimatedCard from '../components/AnimatedCard';
-import { SupabaseService, type Profile, type Certification } from '../lib/supabase';
+import { DatabaseService, type Profile, type Certification } from '../lib/supabase';
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -17,14 +17,14 @@ export default function ProfilePage() {
     try {
       console.log('🔄 Loading profile...');
       
-      const connectionOk = await SupabaseService.testConnection();
+      const connectionOk = await DatabaseService.testConnection();
       if (!connectionOk) {
-        console.warn('⚠️ Supabase connection failed');
+        console.warn('⚠️ Database connection failed');
         setLoading(false);
         return;
       }
       
-      const profileData = await SupabaseService.getProfile();
+      const profileData = await DatabaseService.getProfile();
       console.log('📊 Profile loaded:', profileData?.name || 'No profile');
       setProfile(profileData);
       
