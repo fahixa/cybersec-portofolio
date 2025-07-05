@@ -169,28 +169,32 @@ export const ArticleDetail: React.FC = () => {
               components={{
                 code({node, inline, className, children, ...props}: any) {
                   const match = /language-(\w+)/.exec(className || '');
+                  const isTerminalOutput = String(children).includes('PORT') && String(children).includes('STATE') && String(children).includes('SERVICE');
+                  
                   return !inline && match ? (
                     <SyntaxHighlighter
                       style={tomorrow as any}
                       language={match[1]}
                       PreTag="div"
-                      className="rounded-lg border border-gray-300 dark:border-gray-600/30 my-6 overflow-x-auto shadow-sm"
+                      className={`rounded-lg border border-gray-300 dark:border-gray-600/30 my-6 overflow-x-auto shadow-sm ${isTerminalOutput ? 'terminal-output' : ''}`}
                       customStyle={{
-                        backgroundColor: 'transparent',
+                        backgroundColor: isTerminalOutput ? '#0f172a' : 'transparent',
                         padding: '1.5rem',
                         fontSize: '0.875rem',
                         lineHeight: '1.6',
                         fontFamily: 'JetBrains Mono, Fira Code, Consolas, Monaco, monospace',
-                        border: 'none'
+                        border: 'none',
+                        color: isTerminalOutput ? '#00ff41' : undefined
                       }}
                       wrapLines={true}
                       wrapLongLines={true}
+                      showLineNumbers={!isTerminalOutput}
                       {...props}
                     >
                       {String(children).replace(/\n$/, '')}
                     </SyntaxHighlighter>
                   ) : (
-                    <code className="bg-gray-100 dark:bg-gray-800/80 px-3 py-1.5 rounded-md text-blue-600 dark:text-green-400 border border-gray-300 dark:border-gray-600/30 transition-colors duration-300 font-mono text-sm font-medium" {...props}>
+                    <code className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-gray-800 dark:to-gray-700 px-3 py-1.5 rounded-md text-blue-600 dark:text-green-400 border border-blue-200 dark:border-gray-600/30 transition-all duration-300 font-mono text-sm font-medium hover:shadow-md" {...props}>
                       {children}
                     </code>
                   );

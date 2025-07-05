@@ -5,25 +5,47 @@
 /* Custom CSS variables for code blocks */
 :root {
   --code-bg: #f8fafc;
+  --code-border: #e2e8f0;
+  --code-text: #334155;
+  --code-highlight: #0ea5e9;
 }
 
 .dark {
   --code-bg: #1e293b;
+  --code-border: #334155;
+  --code-text: #e2e8f0;
+  --code-highlight: #22d3ee;
 }
 
 /* Improve code block styling */
 pre[class*="language-"] {
   background: var(--code-bg) !important;
   border-radius: 0.5rem;
-  border: 1px solid rgb(209 213 219 / 0.3);
+  border: 1px solid var(--code-border);
   margin: 1.5rem 0;
   overflow-x: auto;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+  position: relative;
+}
+
+/* Add a subtle gradient overlay for depth */
+pre[class*="language-"]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #3b82f6, #06b6d4, #10b981);
+  border-radius: 0.5rem 0.5rem 0 0;
 }
 
 .dark pre[class*="language-"] {
-  border-color: rgb(75 85 99 / 0.3);
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+}
+
+.dark pre[class*="language-"]::before {
+  background: linear-gradient(90deg, #22d3ee, #10b981, #06b6d4);
 }
 
 /* Improve inline code styling */
@@ -32,6 +54,46 @@ code:not([class*="language-"]) {
   font-size: 0.875rem;
   font-weight: 500;
   letter-spacing: -0.025em;
+  position: relative;
+  display: inline-block;
+}
+
+/* Add subtle animation to inline code */
+code:not([class*="language-"]):hover {
+  transform: translateY(-1px);
+  transition: transform 0.2s ease;
+}
+
+/* Terminal-like styling for specific code blocks */
+.terminal-output {
+  background: #0f172a !important;
+  color: #00ff41;
+  font-family: 'JetBrains Mono', monospace;
+  border: 2px solid #1e293b;
+  border-radius: 8px;
+  position: relative;
+  padding: 1.5rem !important;
+}
+
+.terminal-output::before {
+  content: '●●●';
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  color: #ef4444;
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+.terminal-output::after {
+  content: 'Terminal';
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 500;
 }
 
 /* Better scrollbar for code blocks */

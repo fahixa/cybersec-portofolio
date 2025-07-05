@@ -177,9 +177,10 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 code({className, children, node, inline, ...props}: any) {
                   const match = /language-(\w+)/.exec(className || '');
                   const isInlineCode = inline;
+                  const isTerminalOutput = !isInlineCode && String(children).includes('PORT') && String(children).includes('STATE');
                   
                   return isInlineCode ? (
-                    <code className="bg-gray-100 dark:bg-gray-800/80 px-2 py-1 rounded text-blue-600 dark:text-green-400 border border-gray-300 dark:border-gray-600/30 font-mono text-sm" {...props}>
+                    <code className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-gray-800 dark:to-gray-700 px-3 py-1.5 rounded-md text-blue-600 dark:text-green-400 border border-blue-200 dark:border-gray-600/30 font-mono text-sm hover:shadow-sm transition-all duration-200" {...props}>
                       {children}
                     </code>
                   ) : (
@@ -187,14 +188,16 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                       style={tomorrow as any}
                       language={match?.[1] || 'text'}
                       PreTag="div"
-                      className="rounded-lg border border-gray-300 dark:border-gray-600/30 my-4 overflow-x-auto"
+                      className={`rounded-lg border border-gray-300 dark:border-gray-600/30 my-4 overflow-x-auto ${isTerminalOutput ? 'terminal-output' : ''}`}
                       customStyle={{
-                        backgroundColor: 'var(--code-bg)',
+                        backgroundColor: isTerminalOutput ? '#0f172a' : 'var(--code-bg)',
                         padding: '1rem',
                         fontSize: '0.875rem',
                         lineHeight: '1.5',
-                        fontFamily: 'JetBrains Mono, Fira Code, Consolas, Monaco, monospace'
+                        fontFamily: 'JetBrains Mono, Fira Code, Consolas, Monaco, monospace',
+                        color: isTerminalOutput ? '#00ff41' : undefined
                       }}
+                      showLineNumbers={!isTerminalOutput}
                     >
                       {String(children).replace(/\n$/, '')}
                     </SyntaxHighlighter>
