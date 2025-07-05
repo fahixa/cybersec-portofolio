@@ -196,39 +196,54 @@ export default function ProfilePage() {
                       const dateRange = titleParts[titleParts.length - 1] || '';
                       
                       return (
-                        <div key={index} className="relative pl-6 border-l-2 border-purple-200 dark:border-purple-500/30 last:border-l-0">
-                          {/* Timeline dot */}
-                          <div className="absolute -left-2 top-0 w-4 h-4 bg-purple-600 dark:bg-purple-400 rounded-full border-2 border-white dark:border-gray-900"></div>
+                        <div key={index} className="relative">
+                          {/* Timeline line - only show if not last item */}
+                          {index < experiences.length - 1 && (
+                            <div className="absolute left-4 top-12 bottom-0 w-0.5 bg-gradient-to-b from-purple-400 via-purple-300 to-transparent dark:from-purple-500 dark:via-purple-600 dark:to-transparent"></div>
+                          )}
                           
-                          {/* Content */}
-                          <div className="pb-6 last:pb-0">
-                            {/* Position and Date */}
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2">
-                              <h4 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white transition-colors duration-300">
-                                {position}
-                              </h4>
-                              <span className="text-xs sm:text-sm px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full border border-purple-200 dark:border-purple-500/30 transition-colors duration-300 self-start sm:self-auto">
-                                {dateRange}
-                              </span>
+                          {/* Experience Card */}
+                          <div className="relative bg-gradient-to-r from-purple-50/50 to-indigo-50/50 dark:from-purple-900/20 dark:to-indigo-900/20 border border-purple-200/50 dark:border-purple-500/30 rounded-xl p-6 mb-6 hover:shadow-lg dark:hover:shadow-purple-500/10 transition-all duration-300 group">
+                            {/* Timeline Dot */}
+                            <div className="absolute -left-2 top-6 w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 dark:from-purple-400 dark:to-indigo-500 rounded-full border-4 border-white dark:border-gray-900 shadow-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                              <div className="w-2 h-2 bg-white dark:bg-gray-900 rounded-full"></div>
                             </div>
                             
-                            {/* Company */}
-                            {company && (
-                              <p className="text-sm sm:text-base text-purple-600 dark:text-purple-400 font-medium mb-3 transition-colors duration-300">
-                                {company}
-                              </p>
-                            )}
+                            {/* Header Section */}
+                            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-4 gap-3">
+                              <div className="flex-1">
+                                <h4 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
+                                  {position}
+                                </h4>
+                                {company && (
+                                  <p className="text-base sm:text-lg text-purple-600 dark:text-purple-400 font-semibold mb-1">
+                                    {company}
+                                  </p>
+                                )}
+                              </div>
+                              
+                              {/* Date Badge */}
+                              <div className="flex-shrink-0">
+                                <span className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 dark:from-purple-400 dark:to-indigo-500 text-white dark:text-gray-900 text-sm font-semibold rounded-full shadow-md">
+                                  {dateRange}
+                                </span>
+                              </div>
+                            </div>
                             
                             {/* Responsibilities */}
                             {responsibilities.length > 0 && (
-                              <ul className="space-y-2">
+                              <div className="space-y-3">
                                 {responsibilities.map((responsibility, respIndex) => (
-                                  <li key={respIndex} className="flex items-start text-sm sm:text-base text-gray-700 dark:text-gray-300 transition-colors duration-300">
-                                    <span className="text-purple-600 dark:text-purple-400 mr-3 mt-1 flex-shrink-0">•</span>
-                                    <span className="leading-relaxed">{responsibility.substring(1).trim()}</span>
-                                  </li>
+                                  <div key={respIndex} className="flex items-start group/item">
+                                    <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-purple-400 to-indigo-500 dark:from-purple-500 dark:to-indigo-600 rounded-full flex items-center justify-center mt-0.5 mr-4 group-hover/item:scale-110 transition-transform duration-200">
+                                      <div className="w-2 h-2 bg-white dark:bg-gray-900 rounded-full"></div>
+                                    </div>
+                                    <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed group-hover/item:text-gray-900 dark:group-hover/item:text-white transition-colors duration-200">
+                                      {responsibility.substring(1).trim()}
+                                    </p>
+                                  </div>
                                 ))}
-                              </ul>
+                              </div>
                             )}
                           </div>
                         </div>
@@ -237,7 +252,7 @@ export default function ProfilePage() {
                   })()
                 ) : (
                   <div className="text-center py-8">
-                    <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                       <svg className="w-8 h-8 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6" />
                       </svg>

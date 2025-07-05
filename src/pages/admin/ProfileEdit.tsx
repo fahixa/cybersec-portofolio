@@ -434,7 +434,7 @@ export default function ProfileEdit() {
                   <p>• Responsibility 1</p>
                   <p>• Responsibility 2</p>
                   <p>• Responsibility 3</p>
-                  <p className="mt-2 italic">Leave empty line between different positions</p>
+                  <p className="mt-2 italic">Leave empty line between different positions. Each position will be displayed as a modern timeline card.</p>
                 </div>
               </div>
               <textarea
@@ -453,7 +453,7 @@ Head of Laboratory Assistant - Security Laboratory (SECULAB) - Jun 2023 to Jun 2
                 maxLength={5000}
               />
               <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 transition-colors duration-300">
-                <span>Use the format above for best results. Each position should be separated by an empty line.</span>
+                <span>Use the format above for best results. Each position will be displayed as a professional timeline card.</span>
                 <span>{formData.experience.length}/5000 characters</span>
               </div>
             </div>
