@@ -4,7 +4,7 @@ import { useTheme } from '../contexts/ThemeContext';
 
 interface ThemeToggleProps {
   className?: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
 }
 
 export const ThemeToggle: React.FC<ThemeToggleProps> = ({ 

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Shield, Home, FileText, User, BookOpen, Menu, X } from 'lucide-react';
-import { SecurityUtils } from '../lib/security';
 import GlitchText from './GlitchText';
 import { ThemeToggle } from './ThemeToggle';
 

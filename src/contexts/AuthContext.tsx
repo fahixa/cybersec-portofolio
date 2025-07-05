@@ -130,7 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Sign up functionality removed - Admin only system
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (_email: string, _password: string) => {
     throw new Error('Registration is disabled. This is an admin-only system.');
   };
 
