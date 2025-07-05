@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Shield, FileText, User, Plus, LogOut, Edit, Trash2, Eye, EyeOff, Clock, AlertTriangle, BookOpen, Star } from 'lucide-react';
+import { FileText, Plus, LogOut, Edit, Trash2, Eye, EyeOff, Clock, AlertTriangle, BookOpen, Star, Calendar, User, TrendingUp } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase, type Profile, type Writeup, type Article } from '../../lib/supabase';
 import GlitchText from '../../components/GlitchText';
@@ -76,6 +76,7 @@ export default function Dashboard() {
       const { data: writeupsData } = await supabase
         .from('writeups')
         .select('*')
+        .eq('user_id', user!.id)
         .order('created_at', { ascending: false });
       setWriteups(writeupsData || []);
 
@@ -83,6 +84,7 @@ export default function Dashboard() {
       const { data: articlesData } = await supabase
         .from('articles')
         .select('*')
+        .eq('user_id', user!.id)
         .order('created_at', { ascending: false });
       setArticles(articlesData || []);
     } catch (error) {
@@ -191,6 +193,46 @@ export default function Dashboard() {
     }
   };
 
+  // Utility functions for content preview
+  const truncateText = (text: string, maxLength: number = 120): string => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength).trim() + '...';
+  };
+
+  const extractContentPreview = (content: string): string => {
+    // Remove markdown syntax and get clean text preview
+    const cleanContent = content
+      .replace(/#{1,6}\s+/g, '') // Remove headers
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
+      .replace(/\*(.*?)\*/g, '$1') // Remove italic
+      .replace(/`(.*?)`/g, '$1') // Remove inline code
+      .replace(/```[\s\S]*?```/g, '[Code Block]') // Replace code blocks
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links, keep text
+      .replace(/\n+/g, ' ') // Replace newlines with spaces
+      .trim();
+    
+    return truncateText(cleanContent, 150);
+  };
+
+  const formatDate = (dateString: string): string => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'tutorial': return BookOpen;
+      case 'tools': return TrendingUp;
+      case 'career': return User;
+      case 'ctf': return FileText;
+      case 'bug-bounty': return AlertTriangle;
+      default: return FileText;
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-white flex items-center justify-center px-4 transition-colors duration-300">
@@ -205,43 +247,45 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-white transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Header with Session Info */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-600 dark:text-green-400 font-mono mb-2 transition-colors duration-300">
-              <GlitchText text="ADMIN DASHBOARD" />
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base transition-colors duration-300">
-              Welcome back, Administrator
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-500 transition-colors duration-300">
-              Logged in as: {user?.email}
-            </p>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-            {/* Session Timer */}
-            <div className="bg-yellow-50 dark:bg-gray-900/50 border border-yellow-300 dark:border-yellow-500/30 rounded-lg px-3 py-2 flex items-center space-x-2 transition-colors duration-300">
-              <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-600 dark:text-yellow-400 transition-colors duration-300" />
-              <span className="text-yellow-700 dark:text-yellow-400 text-xs sm:text-sm font-mono transition-colors duration-300">
-                Session: {sessionTimeRemaining}
-              </span>
+        {/* Modern Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 dark:from-green-500 dark:to-cyan-500 rounded-2xl p-6 sm:p-8 mb-8 text-white shadow-xl">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="flex-1">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-mono mb-2">
+                <GlitchText text="ADMIN DASHBOARD" />
+              </h1>
+              <p className="text-blue-100 dark:text-green-100 text-sm sm:text-base mb-2">
+                Welcome back, Administrator
+              </p>
+              <p className="text-xs text-blue-200 dark:text-green-200 opacity-80">
+                Logged in as: {user?.email}
+              </p>
             </div>
             
-            <button
-              onClick={handleSignOut}
-              className="flex items-center space-x-2 bg-red-600 hover:bg-red-500 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm"
-            >
-              <LogOut className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span>Sign Out</span>
-            </button>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              {/* Session Timer */}
+              <div className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg px-4 py-2 flex items-center space-x-2">
+                <Clock className="w-4 h-4" />
+                <span className="text-sm font-mono">
+                  Session: {sessionTimeRemaining}
+                </span>
+              </div>
+              
+              <button
+                onClick={handleSignOut}
+                className="flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Sign Out</span>
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Security Alert */}
-        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-500/50 text-red-700 dark:text-red-400 p-3 sm:p-4 rounded-lg mb-6 sm:mb-8 transition-colors duration-300">
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-400 p-4 rounded-lg mb-8 transition-colors duration-300">
           <div className="flex items-start">
-            <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" />
+            <AlertTriangle className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" />
             <div>
               <p className="font-semibold mb-1 text-sm sm:text-base">Security Notice</p>
               <p className="text-xs sm:text-sm">
@@ -252,227 +296,326 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6 mb-8 sm:mb-12">
-          <AnimatedCard className="text-center">
-            <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 dark:text-green-400 mx-auto mb-2 transition-colors duration-300" />
-            <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white font-mono transition-colors duration-300">1</div>
-            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">Active Profile</div>
+        {/* Stats Overview */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+          <AnimatedCard className="text-center bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-500/30">
+            <FileText className="w-8 h-8 text-blue-600 dark:text-blue-400 mx-auto mb-3" />
+            <div className="text-2xl font-bold text-blue-700 dark:text-blue-300 font-mono">{writeups.length}</div>
+            <div className="text-sm text-blue-600 dark:text-blue-400">Total Writeups</div>
           </AnimatedCard>
-          <AnimatedCard className="text-center" glowColor="cyan">
-            <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-cyan-600 dark:text-cyan-400 mx-auto mb-2 transition-colors duration-300" />
-            <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white font-mono transition-colors duration-300">{writeups.length}</div>
-            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">Total Writeups</div>
+          
+          <AnimatedCard className="text-center bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-500/30">
+            <BookOpen className="w-8 h-8 text-purple-600 dark:text-purple-400 mx-auto mb-3" />
+            <div className="text-2xl font-bold text-purple-700 dark:text-purple-300 font-mono">{articles.length}</div>
+            <div className="text-sm text-purple-600 dark:text-purple-400">Total Articles</div>
           </AnimatedCard>
-          <AnimatedCard className="text-center" glowColor="purple">
-            <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600 dark:text-purple-400 mx-auto mb-2 transition-colors duration-300" />
-            <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white font-mono transition-colors duration-300">{articles.length}</div>
-            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">Total Articles</div>
-          </AnimatedCard>
-          <AnimatedCard className="text-center">
-            <Eye className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 dark:text-green-400 mx-auto mb-2 transition-colors duration-300" />
-            <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white font-mono transition-colors duration-300">
+          
+          <AnimatedCard className="text-center bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-500/30">
+            <Eye className="w-8 h-8 text-green-600 dark:text-green-400 mx-auto mb-3" />
+            <div className="text-2xl font-bold text-green-700 dark:text-green-300 font-mono">
               {writeups.filter(w => w.published).length + articles.filter(a => a.published).length}
             </div>
-            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">Published</div>
+            <div className="text-sm text-green-600 dark:text-green-400">Published</div>
           </AnimatedCard>
-          <AnimatedCard className="text-center col-span-2 sm:col-span-1">
-            <Star className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-600 dark:text-yellow-400 mx-auto mb-2 transition-colors duration-300" />
-            <div className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white font-mono transition-colors duration-300">
+          
+          <AnimatedCard className="text-center bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border-yellow-200 dark:border-yellow-500/30">
+            <Star className="w-8 h-8 text-yellow-600 dark:text-yellow-400 mx-auto mb-3" />
+            <div className="text-2xl font-bold text-yellow-700 dark:text-yellow-300 font-mono">
               {articles.filter(a => a.featured).length}
             </div>
-            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">Featured</div>
+            <div className="text-sm text-yellow-600 dark:text-yellow-400">Featured</div>
           </AnimatedCard>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 sm:gap-8">
-          {/* Profile Management */}
-          <div className="lg:col-span-2">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
-              <h2 className="text-lg sm:text-2xl font-bold text-blue-600 dark:text-green-400 font-mono transition-colors duration-300">Profile</h2>
-              <Link
-                to="/authorize/profile"
-                className="flex items-center space-x-2 bg-blue-600 dark:bg-green-600 hover:bg-blue-500 dark:hover:bg-green-500 text-white dark:text-black px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm w-fit"
-              >
-                <User className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span>Edit Profile</span>
-              </Link>
-            </div>
-            <AnimatedCard>
-              {profile ? (
-                <div>
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2 transition-colors duration-300">{profile.name}</h3>
-                  <p className="text-blue-600 dark:text-green-400 mb-2 text-sm sm:text-base transition-colors duration-300">{profile.title}</p>
-                  <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm line-clamp-3 transition-colors duration-300">{profile.bio}</p>
-                </div>
-              ) : (
-                <div className="text-center text-gray-500 dark:text-gray-500 transition-colors duration-300">
-                  <User className="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-2" />
-                  <p className="text-sm">No profile created yet</p>
-                </div>
-              )}
-            </AnimatedCard>
-          </div>
-
+        {/* Content Management Grid */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           {/* Writeups Management */}
-          <div className="lg:col-span-2">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
-              <h2 className="text-lg sm:text-2xl font-bold text-blue-600 dark:text-green-400 font-mono transition-colors duration-300">Writeups</h2>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Writeups</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Manage your security writeups</p>
+                </div>
+              </div>
               <Link
                 to="/authorize/writeups/new"
-                className="flex items-center space-x-2 bg-blue-600 dark:bg-green-600 hover:bg-blue-500 dark:hover:bg-green-500 text-white dark:text-black px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm w-fit"
+                className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium"
               >
-                <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+                <Plus className="w-4 h-4" />
                 <span>New Writeup</span>
               </Link>
             </div>
-            <div className="space-y-3 sm:space-y-4 max-h-80 sm:max-h-96 overflow-y-auto">
+
+            <div className="space-y-4 max-h-96 overflow-y-auto">
               {writeups.length > 0 ? (
-                writeups.map((writeup) => (
-                  <AnimatedCard key={writeup.id} className="p-3 sm:p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0 pr-2">
-                        <div className="flex flex-wrap items-center gap-2 mb-1">
-                          <h3 className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white truncate transition-colors duration-300">
+                writeups.map((writeup) => {
+                  const CategoryIcon = getCategoryIcon(writeup.category);
+                  return (
+                    <AnimatedCard key={writeup.id} className="p-4 hover:shadow-lg transition-all duration-200">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CategoryIcon className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                            <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                              writeup.published 
+                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
+                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-400'
+                            }`}>
+                              {writeup.published ? 'Published' : 'Draft'}
+                            </span>
+                            <span className="text-xs px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium">
+                              {writeup.category.toUpperCase()}
+                            </span>
+                          </div>
+                          
+                          <h3 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-1">
                             {writeup.title}
                           </h3>
-                          <span className={`text-xs px-2 py-1 rounded ${
-                            writeup.published 
-                              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
-                              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-400'
-                          } transition-colors duration-300`}>
-                            {writeup.published ? 'Published' : 'Draft'}
-                          </span>
+                          
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                            {extractContentPreview(writeup.content)}
+                          </p>
+                          
+                          <div className="flex items-center text-xs text-gray-500 dark:text-gray-500">
+                            <Calendar className="w-3 h-3 mr-1" />
+                            {formatDate(writeup.created_at)}
+                          </div>
                         </div>
-                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 transition-colors duration-300">{writeup.category}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-500 transition-colors duration-300">
-                          {new Date(writeup.created_at).toLocaleDateString()}
-                        </p>
+                        
+                        <div className="flex items-center space-x-1 flex-shrink-0">
+                          <button
+                            onClick={() => toggleWriteupPublished(writeup.id, writeup.published)}
+                            className={`p-2 rounded-lg transition-colors ${
+                              writeup.published 
+                                ? 'text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20' 
+                                : 'text-gray-500 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800'
+                            }`}
+                            title={writeup.published ? 'Unpublish' : 'Publish'}
+                          >
+                            {writeup.published ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                          </button>
+                          <Link
+                            to={`/authorize/writeups/edit/${writeup.id}`}
+                            className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                            title="Edit"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Link>
+                          <button
+                            onClick={() => deleteWriteup(writeup.id)}
+                            className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-1 sm:space-x-2 ml-2">
-                        <button
-                          onClick={() => toggleWriteupPublished(writeup.id, writeup.published)}
-                          className={`p-1 rounded ${
-                            writeup.published 
-                              ? 'text-green-600 dark:text-green-400 hover:text-green-500 dark:hover:text-green-300' 
-                              : 'text-gray-500 dark:text-gray-500 hover:text-gray-400 dark:hover:text-gray-400'
-                          } transition-colors duration-300`}
-                        >
-                          {writeup.published ? <Eye className="w-3 h-3 sm:w-4 sm:h-4" /> : <EyeOff className="w-3 h-3 sm:w-4 sm:h-4" />}
-                        </button>
-                        <Link
-                          to={`/authorize/writeups/edit/${writeup.id}`}
-                          className="p-1 text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors duration-300"
-                        >
-                          <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
-                        </Link>
-                        <button
-                          onClick={() => deleteWriteup(writeup.id)}
-                          className="p-1 text-red-600 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300 transition-colors duration-300"
-                        >
-                          <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </AnimatedCard>
-                ))
+                    </AnimatedCard>
+                  );
+                })
               ) : (
-                <AnimatedCard className="text-center text-gray-500 dark:text-gray-500 transition-colors duration-300">
-                  <FileText className="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-2" />
-                  <p className="text-sm">No writeups yet</p>
+                <AnimatedCard className="text-center py-12">
+                  <FileText className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-500 mb-4">No writeups yet</p>
+                  <Link
+                    to="/authorize/writeups/new"
+                    className="inline-flex items-center space-x-2 text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 text-sm font-medium"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Create your first writeup</span>
+                  </Link>
                 </AnimatedCard>
               )}
             </div>
           </div>
 
           {/* Articles Management */}
-          <div className="lg:col-span-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
-              <h2 className="text-lg sm:text-2xl font-bold text-blue-600 dark:text-green-400 font-mono transition-colors duration-300">Articles</h2>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                  <BookOpen className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Articles</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Manage your articles and tutorials</p>
+                </div>
+              </div>
               <Link
                 to="/authorize/articles/new"
-                className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-500 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm w-fit"
+                className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium"
               >
-                <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+                <Plus className="w-4 h-4" />
                 <span>New Article</span>
               </Link>
             </div>
-            <div className="space-y-3 sm:space-y-4 max-h-80 sm:max-h-96 overflow-y-auto">
+
+            <div className="space-y-4 max-h-96 overflow-y-auto">
               {articles.length > 0 ? (
-                articles.map((article) => (
-                  <AnimatedCard key={article.id} className="p-3 sm:p-4" glowColor="purple">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0 pr-2">
-                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
-                          <h3 className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white truncate transition-colors duration-300">
-                            {article.title}
-                          </h3>
-                          <div className="flex space-x-1">
-                            <span className={`text-xs px-2 py-1 rounded ${
+                articles.map((article) => {
+                  const CategoryIcon = getCategoryIcon(article.category);
+                  return (
+                    <AnimatedCard key={article.id} className="p-4 hover:shadow-lg transition-all duration-200">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CategoryIcon className="w-4 h-4 text-purple-600 dark:text-purple-400 flex-shrink-0" />
+                            <span className={`text-xs px-2 py-1 rounded-full font-medium ${
                               article.published 
                                 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
                                 : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-400'
-                            } transition-colors duration-300`}>
+                            }`}>
                               {article.published ? 'Published' : 'Draft'}
                             </span>
                             {article.featured && (
-                              <span className="text-xs px-2 py-1 rounded bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 transition-colors duration-300">
+                              <span className="text-xs px-2 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 font-medium">
                                 Featured
                               </span>
                             )}
+                            <span className="text-xs px-2 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 font-medium">
+                              {article.category.toUpperCase()}
+                            </span>
+                          </div>
+                          
+                          <h3 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-1">
+                            {article.title}
+                          </h3>
+                          
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                            {extractContentPreview(article.content)}
+                          </p>
+                          
+                          <div className="flex items-center text-xs text-gray-500 dark:text-gray-500">
+                            <Calendar className="w-3 h-3 mr-1" />
+                            {formatDate(article.created_at)}
+                            <span className="mx-2">•</span>
+                            <Clock className="w-3 h-3 mr-1" />
+                            {article.read_time} min read
                           </div>
                         </div>
-                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 transition-colors duration-300">{article.category}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-500 transition-colors duration-300">
-                          {new Date(article.created_at).toLocaleDateString()}
-                        </p>
+                        
+                        <div className="flex items-center space-x-1 flex-shrink-0">
+                          <button
+                            onClick={() => toggleArticleFeatured(article.id, article.featured)}
+                            className={`p-2 rounded-lg transition-colors ${
+                              article.featured 
+                                ? 'text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20' 
+                                : 'text-gray-500 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800'
+                            }`}
+                            title={article.featured ? 'Remove from featured' : 'Add to featured'}
+                          >
+                            <Star className={`w-4 h-4 ${article.featured ? 'fill-current' : ''}`} />
+                          </button>
+                          <button
+                            onClick={() => toggleArticlePublished(article.id, article.published)}
+                            className={`p-2 rounded-lg transition-colors ${
+                              article.published 
+                                ? 'text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20' 
+                                : 'text-gray-500 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800'
+                            }`}
+                            title={article.published ? 'Unpublish' : 'Publish'}
+                          >
+                            {article.published ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                          </button>
+                          <Link
+                            to={`/authorize/articles/edit/${article.id}`}
+                            className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                            title="Edit"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Link>
+                          <button
+                            onClick={() => deleteArticle(article.id)}
+                            className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-1 sm:space-x-2 ml-2">
-                        <button
-                          onClick={() => toggleArticleFeatured(article.id, article.featured)}
-                          className={`p-1 rounded ${
-                            article.featured 
-                              ? 'text-yellow-600 dark:text-yellow-400 hover:text-yellow-500 dark:hover:text-yellow-300' 
-                              : 'text-gray-500 dark:text-gray-500 hover:text-gray-400 dark:hover:text-gray-400'
-                          } transition-colors duration-300`}
-                        >
-                          <Star className={`w-3 h-3 sm:w-4 sm:h-4 ${article.featured ? 'fill-current' : ''}`} />
-                        </button>
-                        <button
-                          onClick={() => toggleArticlePublished(article.id, article.published)}
-                          className={`p-1 rounded ${
-                            article.published 
-                              ? 'text-green-600 dark:text-green-400 hover:text-green-500 dark:hover:text-green-300' 
-                              : 'text-gray-500 dark:text-gray-500 hover:text-gray-400 dark:hover:text-gray-400'
-                          } transition-colors duration-300`}
-                        >
-                          {article.published ? <Eye className="w-3 h-3 sm:w-4 sm:h-4" /> : <EyeOff className="w-3 h-3 sm:w-4 sm:h-4" />}
-                        </button>
-                        <Link
-                          to={`/authorize/articles/edit/${article.id}`}
-                          className="p-1 text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors duration-300"
-                        >
-                          <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
-                        </Link>
-                        <button
-                          onClick={() => deleteArticle(article.id)}
-                          className="p-1 text-red-600 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300 transition-colors duration-300"
-                        >
-                          <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </AnimatedCard>
-                ))
+                    </AnimatedCard>
+                  );
+                })
               ) : (
-                <AnimatedCard className="text-center text-gray-500 dark:text-gray-500 transition-colors duration-300" glowColor="purple">
-                  <BookOpen className="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-2" />
-                  <p className="text-sm">No articles yet</p>
+                <AnimatedCard className="text-center py-12">
+                  <BookOpen className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-500 mb-4">No articles yet</p>
+                  <Link
+                    to="/authorize/articles/new"
+                    className="inline-flex items-center space-x-2 text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 text-sm font-medium"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Create your first article</span>
+                  </Link>
                 </AnimatedCard>
               )}
             </div>
           </div>
+        </div>
 
+        {/* Profile Management Section */}
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                <User className="w-5 h-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Profile Management</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Manage your public profile information</p>
+              </div>
+            </div>
+            <Link
+              to="/authorize/profile"
+              className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+            >
+              <Edit className="w-4 h-4" />
+              <span>Edit Profile</span>
+            </Link>
+          </div>
+
+          <AnimatedCard className="p-6">
+            {profile ? (
+              <div className="flex items-start space-x-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                  {profile.name.charAt(0)}
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">{profile.name}</h3>
+                  <p className="text-green-600 dark:text-green-400 mb-3 font-medium">{profile.title}</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-4">{profile.bio}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.skills.slice(0, 4).map((skill, index) => (
+                      <span key={index} className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full">
+                        {skill}
+                      </span>
+                    ))}
+                    {profile.skills.length > 4 && (
+                      <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full">
+                        +{profile.skills.length - 4} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <User className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-500 dark:text-gray-500 mb-4">No profile created yet</p>
+                <Link
+                  to="/authorize/profile"
+                  className="inline-flex items-center space-x-2 text-green-600 dark:text-green-400 hover:text-green-500 dark:hover:text-green-300 text-sm font-medium"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Create your profile</span>
+                </Link>
+              </div>
+            )}
+          </AnimatedCard>
         </div>
       </div>
     </div>
