@@ -8,20 +8,19 @@ import { useWriteups } from '../hooks/useDataFetching';
 import { type Writeup } from '../lib/supabase';
 
 export default function Writeups() {
-  const [writeups, setWriteups] = useState<Writeup[]>([]);
   const [filteredWriteups, setFilteredWriteups] = useState<Writeup[]>([]);
   const [filter, setFilter] = useState<'all' | 'ctf' | 'bug-bounty'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-
-  useEffect(() => {
-    loadWriteups();
-  });
 
   // Use optimized data fetching
   const { data: writeups = [], loading } = useWriteups({ 
     published: true,
     search: searchQuery || undefined // Only include search if there's a query
   });
+
+  useEffect(() => {
+    filterWriteups();
+  }, [writeups, filter, searchQuery]);
 
   const filterWriteups = () => {
     let filtered = writeups;
