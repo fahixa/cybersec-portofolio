@@ -62,10 +62,17 @@ export default {
       spacing: {
         '18': '4.5rem',
         '88': '22rem',
+        '128': '32rem',
+      },
+      screens: {
+        'xs': '475px',
+        '3xl': '1600px',
+        '88': '22rem',
       },
       maxWidth: {
         '8xl': '88rem',
         '9xl': '96rem',
+        'screen-2xl': '1536px',
       },
     },
   },

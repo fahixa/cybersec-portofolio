@@ -125,10 +125,10 @@ export default function Articles() {
   }
 
   return (
-    <div className="min-h-screen pt-20 bg-gray-50 dark:bg-black transition-colors duration-300">
+    <div className="min-h-screen pt-16 sm:pt-20 bg-gray-50 dark:bg-black transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="text-center mb-8 sm:mb-12">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-blue-600 dark:text-green-400 font-mono mb-4 transition-colors duration-300">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-blue-600 dark:text-green-400 font-mono mb-4 transition-colors duration-300">
             <GlitchText text="ARTICLES" />
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg transition-colors duration-300">Insights, tutorials, and thoughts on cybersecurity</p>
@@ -146,7 +146,7 @@ export default function Articles() {
           </div>
 
           {/* Filter Buttons */}
-          <div className="bg-white/95 dark:bg-black/60 backdrop-blur-sm border border-gray-200 dark:border-green-500/30 rounded-lg p-1 flex flex-wrap gap-1 shadow-sm dark:shadow-none transition-colors duration-300">
+          <div className="bg-white/95 dark:bg-black/60 backdrop-blur-sm border border-gray-200 dark:border-green-500/30 rounded-lg p-1 grid grid-cols-3 sm:flex sm:flex-wrap gap-1 shadow-sm dark:shadow-none transition-colors duration-300">
             {[
               { key: 'all', label: 'All' },
               { key: 'tutorial', label: 'Tutorials' },
@@ -158,13 +158,13 @@ export default function Articles() {
               <button
                 key={key}
                 onClick={() => setFilter(key as typeof filter)}
-                className={`px-2 sm:px-4 py-2 rounded-md font-mono text-xs sm:text-sm transition-all flex-1 sm:flex-none ${
+                className={`px-2 sm:px-4 py-2 rounded-md font-mono text-xs sm:text-sm transition-all text-center ${
                   filter === key
                     ? 'bg-blue-600 dark:bg-green-500 text-white dark:text-black'
                     : 'text-blue-600 dark:text-green-400 hover:text-blue-500 dark:hover:text-green-300 hover:bg-blue-50 dark:hover:bg-green-500/10'
                 }`}
               >
-                {label}
+                <span className="truncate">{label}</span>
               </button>
             ))}
           </div>
@@ -194,10 +194,10 @@ export default function Articles() {
                   {featuredArticles.map((article) => {
                     const CategoryIcon = getCategoryIcon(article.category);
                     return (
-                      <AnimatedCard 
+                      <AnimatedCard
                         key={article.id} 
                         glowColor="purple"
-                        className="h-full flex flex-col relative"
+                        className="h-full flex flex-col relative p-4 sm:p-6"
                       >
                         <div className="absolute top-4 right-4">
                           <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 dark:text-yellow-400 fill-current transition-colors duration-300" />
@@ -220,7 +220,7 @@ export default function Articles() {
                           {article.excerpt}
                         </p>
 
-                        <div className="flex flex-wrap gap-2 mb-4">
+                        <div className="flex flex-wrap gap-1 sm:gap-2 mb-4">
                           {article.tags.slice(0, 3).map((tag) => (
                             <span key={tag} className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded flex items-center transition-colors duration-300">
                               <Tag className="w-3 h-3 mr-1" />
@@ -234,7 +234,7 @@ export default function Articles() {
                           )}
                         </div>
 
-                        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500 mb-4 transition-colors duration-300">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-gray-500 dark:text-gray-500 mb-4 gap-2 sm:gap-0 transition-colors duration-300">
                           <div className="flex items-center">
                             <Calendar className="w-3 h-3 mr-1" />
                             {formatDate(article.created_at)}
@@ -247,7 +247,7 @@ export default function Articles() {
 
                         <Link
                           to={`/articles/${article.slug}`}
-                          className="text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-mono text-sm flex items-center justify-center py-2 border border-purple-300 dark:border-purple-500/30 rounded hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-all mt-auto"
+                          className="text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-mono text-sm flex items-center justify-center py-2 sm:py-3 border border-purple-300 dark:border-purple-500/30 rounded hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-all mt-auto"
                         >
                           Read Article →
                         </Link>
@@ -264,14 +264,14 @@ export default function Articles() {
                 {featuredArticles.length > 0 && (
                   <h2 className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-green-400 font-mono mb-6 sm:mb-8 transition-colors duration-300">All Articles</h2>
                 )}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                   {regularArticles.map((article) => {
                     const CategoryIcon = getCategoryIcon(article.category);
                     return (
-                      <AnimatedCard 
+                      <AnimatedCard
                         key={article.id} 
                         glowColor="cyan"
-                        className="h-full flex flex-col"
+                        className="h-full flex flex-col p-4 sm:p-6"
                       >
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center space-x-2">
@@ -290,7 +290,7 @@ export default function Articles() {
                           {article.excerpt}
                         </p>
 
-                        <div className="flex flex-wrap gap-2 mb-4">
+                        <div className="flex flex-wrap gap-1 sm:gap-2 mb-4">
                           {article.tags.slice(0, 3).map((tag) => (
                             <span key={tag} className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded flex items-center transition-colors duration-300">
                               <Tag className="w-3 h-3 mr-1" />
@@ -304,7 +304,7 @@ export default function Articles() {
                           )}
                         </div>
 
-                        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500 mb-4 transition-colors duration-300">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-gray-500 dark:text-gray-500 mb-4 gap-2 sm:gap-0 transition-colors duration-300">
                           <div className="flex items-center">
                             <Calendar className="w-3 h-3 mr-1" />
                             {formatDate(article.created_at)}
@@ -317,7 +317,7 @@ export default function Articles() {
 
                         <Link
                           to={`/articles/${article.slug}`}
-                          className="text-blue-600 dark:text-green-400 hover:text-blue-500 dark:hover:text-green-300 font-mono text-sm flex items-center justify-center py-2 border border-blue-300 dark:border-green-500/30 rounded hover:bg-blue-50 dark:hover:bg-green-500/10 transition-all mt-auto"
+                          className="text-blue-600 dark:text-green-400 hover:text-blue-500 dark:hover:text-green-300 font-mono text-sm flex items-center justify-center py-2 sm:py-3 border border-blue-300 dark:border-green-500/30 rounded hover:bg-blue-50 dark:hover:bg-green-500/10 transition-all mt-auto"
                         >
                           Read Article →
                         </Link>
@@ -329,7 +329,7 @@ export default function Articles() {
             )}
           </div>
         ) : (
-          <div className="text-center py-12 sm:py-16">
+          <div className="text-center py-8 sm:py-12 lg:py-16">
             <BookOpen className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4 transition-colors duration-300" />
             <h3 className="text-lg sm:text-xl font-mono text-gray-500 dark:text-gray-500 mb-2 transition-colors duration-300">
               {searchQuery ? 'No articles found' : 'No articles available'}
@@ -346,7 +346,7 @@ export default function Articles() {
                   setSearchQuery('');
                   setFilter('all');
                 }}
-                className="px-4 py-2 bg-blue-600 dark:bg-green-600 hover:bg-blue-700 dark:hover:bg-green-700 text-white dark:text-black rounded-lg transition-colors text-sm sm:text-base"
+                className="px-4 py-2 bg-blue-600 dark:bg-green-600 hover:bg-blue-700 dark:hover:bg-green-700 text-white dark:text-black rounded-lg transition-colors text-sm sm:text-base mt-4"
               >
                 Clear Search
               </button>
