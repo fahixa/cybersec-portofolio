@@ -119,7 +119,7 @@ export default function ProfilePage() {
           <div className="lg:col-span-1 order-1 lg:order-1">
             <AnimatedCard className="text-center">
               <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-4 sm:mb-6 bg-gradient-to-br from-blue-500 to-cyan-500 dark:from-green-400 dark:to-cyan-400 rounded-full flex items-center justify-center transition-colors duration-300">
-                {displayProfile.avatar_url && isValidUrl(displayProfile.avatar_url) ? (
+                {displayProfile.avatar_url && SecurityUtils.isValidUrl(displayProfile.avatar_url) ? (
                   <img
                     src={displayProfile.avatar_url}
                     alt={displayProfile.name}

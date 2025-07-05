@@ -17,9 +17,6 @@ export class SecurityUtils {
 
   // HTML sanitization for rich content
   static sanitizeHTML(html: string): string {
-    const allowedTags = ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre'];
-    const allowedAttributes = ['class', 'id'];
-    
     // Basic HTML sanitization (in production, use DOMPurify)
     return html
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
