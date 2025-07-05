@@ -43,7 +43,7 @@ export async function createDefaultAdminUser() {
 export async function checkAdminUserExists() {
   try {
     // Try to sign in with default credentials to check if user exists
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email: DEFAULT_ADMIN_CREDENTIALS.email,
       password: DEFAULT_ADMIN_CREDENTIALS.password,
     });

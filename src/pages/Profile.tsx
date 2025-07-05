@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Github, Linkedin, Twitter, MapPin, Calendar, Award, ExternalLink } from 'lucide-react';
 import GlitchText from '../components/GlitchText';
 import AnimatedCard from '../components/AnimatedCard';
@@ -82,6 +82,7 @@ export default function ProfilePage() {
     bio: "Passionate about finding vulnerabilities and securing digital infrastructure. Experienced in penetration testing, bug bounty hunting, and competitive hacking.",
     skills: ["Web Application Security", "Network Penetration Testing", "Reverse Engineering", "Cryptography", "Social Engineering", "Bug Bounty Hunting"],
     experience: "5+ years in cybersecurity with focus on web application testing and vulnerability research.",
+    avatar_url: null,
   };
 
   const displayProfile = profile || defaultProfile;

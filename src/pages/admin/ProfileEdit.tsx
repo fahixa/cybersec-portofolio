@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, Plus, Trash2, Award, ExternalLink } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { supabase, type Profile, type Certification } from '../../lib/supabase';
+import { supabase, type Certification } from '../../lib/supabase';
 import GlitchText from '../../components/GlitchText';
 
 export default function ProfileEdit() {
@@ -61,7 +61,7 @@ export default function ProfileEdit() {
           github_url: data.github_url || '',
           linkedin_url: data.linkedin_url || '',
           twitter_url: data.twitter_url || '',
-          certifications: data.certifications || []
+          certifications: []
         });
       }
     } catch (error) {
@@ -96,7 +96,7 @@ export default function ProfileEdit() {
   const isValidDate = (dateString: string): boolean => {
     if (!dateString) return true; // Empty dates are allowed for expiry
     const date = new Date(dateString);
-    return !isNaN(date.getTime()) && dateString.match(/^\d{4}-\d{2}-\d{2}$/);
+    return !isNaN(date.getTime()) && Boolean(dateString.match(/^\d{4}-\d{2}-\d{2}$/));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -153,10 +153,10 @@ export default function ProfileEdit() {
       const { error } = await supabase
         .from('profiles')
         .upsert({
-          id: user!.id,
+          user_id: user!.id,
           ...sanitizedData,
           updated_at: new Date().toISOString(),
-        });
+        } as any);
 
       if (error) throw error;
 
@@ -206,7 +206,7 @@ export default function ProfileEdit() {
       issuer: sanitizeInput(newCert.issuer),
       validation_url: newCert.validation_url.trim(),
       issue_date: newCert.issue_date,
-      expiry_date: newCert.expiry_date || undefined,
+      expiry_date: newCert.expiry_date || null,
       logo_url: newCert.logo_url.trim()
     };
 

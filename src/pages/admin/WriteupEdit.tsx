@@ -125,11 +125,15 @@ export const WriteupEdit: React.FC = () => {
       };
 
       if (isNew) {
-        sanitizedWriteup.id = Date.now().toString();
-        sanitizedWriteup.created_at = new Date().toISOString();
-        await supabase.from('writeups').insert(sanitizedWriteup);
+        const newWriteup = {
+          ...sanitizedWriteup,
+          id: Date.now().toString(),
+          user_id: user!.id,
+          created_at: new Date().toISOString()
+        };
+        await supabase.from('writeups').insert(newWriteup as WriteupInsert);
       } else {
-        await supabase.from('writeups').update(sanitizedWriteup).eq('id', id);
+        await supabase.from('writeups').update(sanitizedWriteup).eq('id', id!);
       }
 
       navigate('/authorize/dashboard');
@@ -146,7 +150,7 @@ export const WriteupEdit: React.FC = () => {
 
     try {
       setSaving(true);
-      await supabase.from('writeups').delete().eq('id', id);
+      await supabase.from('writeups').delete().eq('id', id!);
       navigate('/authorize/dashboard');
     } catch (err) {
       console.error('Error deleting writeup:', err);

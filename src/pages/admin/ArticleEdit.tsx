@@ -133,11 +133,15 @@ export const ArticleEdit: React.FC = () => {
       };
 
       if (isNew) {
-        sanitizedArticle.id = Date.now().toString();
-        sanitizedArticle.created_at = new Date().toISOString();
-        await supabase.from('articles').insert(sanitizedArticle);
+        const newArticle = {
+          ...sanitizedArticle,
+          id: Date.now().toString(),
+          user_id: user!.id,
+          created_at: new Date().toISOString()
+        };
+        await supabase.from('articles').insert(newArticle as ArticleInsert);
       } else {
-        await supabase.from('articles').update(sanitizedArticle).eq('id', id);
+        await supabase.from('articles').update(sanitizedArticle).eq('id', id!);
       }
 
       navigate('/authorize/dashboard');
@@ -154,7 +158,7 @@ export const ArticleEdit: React.FC = () => {
 
     try {
       setSaving(true);
-      await supabase.from('articles').delete().eq('id', id);
+      await supabase.from('articles').delete().eq('id', id!);
       navigate('/authorize/dashboard');
     } catch (err) {
       console.error('Error deleting article:', err);

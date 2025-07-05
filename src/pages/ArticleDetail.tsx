@@ -167,11 +167,11 @@ export const ArticleDetail: React.FC = () => {
           <div className="prose prose-gray dark:prose-invert prose-blue dark:prose-green max-w-none">
             <ReactMarkdown
               components={{
-                code({node, inline, className, children, ...props}) {
+                code({node, inline, className, children, ...props}: any) {
                   const match = /language-(\w+)/.exec(className || '');
                   return !inline && match ? (
                     <SyntaxHighlighter
-                      style={tomorrow}
+                      style={tomorrow as any}
                       language={match[1]}
                       PreTag="div"
                       className="rounded-lg border border-gray-300 dark:border-gray-600/30"

@@ -187,7 +187,7 @@ export class SupabaseService {
 
       const { data, error } = await supabase
         .from('profiles')
-        .upsert(sanitizedData, { onConflict: 'user_id' })
+        .upsert(sanitizedData as ProfileInsert)
         .select()
         .single();
 
@@ -220,7 +220,7 @@ export class SupabaseService {
       }
 
       if (options.category) {
-        query = query.eq('category', options.category);
+        query = query.eq('category', options.category as 'ctf' | 'bug-bounty');
       }
 
       if (options.search) {
@@ -298,7 +298,7 @@ export class SupabaseService {
 
       const { data, error } = await supabase
         .from('writeups')
-        .upsert(sanitizedData)
+        .upsert(sanitizedData as WriteupInsert)
         .select()
         .single();
 
@@ -351,7 +351,7 @@ export class SupabaseService {
       }
 
       if (options.category) {
-        query = query.eq('category', options.category);
+        query = query.eq('category', options.category as 'tutorial' | 'news' | 'opinion' | 'tools' | 'career');
       }
 
       if (options.search) {
@@ -434,7 +434,7 @@ export class SupabaseService {
 
       const { data, error } = await supabase
         .from('articles')
-        .upsert(sanitizedData)
+        .upsert(sanitizedData as ArticleInsert)
         .select()
         .single();
 
@@ -481,7 +481,7 @@ export class SupabaseService {
 
       const { data, error } = await supabase
         .from('certifications')
-        .upsert(sanitizedData)
+        .upsert(sanitizedData as CertificationInsert)
         .select()
         .single();
 

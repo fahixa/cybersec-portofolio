@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown, Github, Linkedin, Twitter, Terminal, Shield, Bug, BookOpen, Star } from 'lucide-react';
 import GlitchText from '../components/GlitchText';
