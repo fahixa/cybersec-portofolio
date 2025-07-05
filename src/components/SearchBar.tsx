@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
+import { SecurityUtils } from '../lib/security';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -16,19 +17,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Secure input sanitization
-  const sanitizeInput = (input: string): string => {
-    return input
-      .replace(/[<>]/g, '') // Remove angle brackets
-      .replace(/javascript:/gi, '') // Remove javascript: protocol
-      .replace(/on\w+=/gi, '') // Remove event handlers
-      .replace(/script/gi, '') // Remove script tags
-      .trim()
-      .slice(0, 100); // Limit length
-  };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const sanitizedValue = sanitizeInput(e.target.value);
+    const sanitizedValue = SecurityUtils.sanitizeInput(e.target.value);
     setQuery(sanitizedValue);
   };
 

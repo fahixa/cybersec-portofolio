@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Shield, Home, FileText, User, BookOpen, Menu, X } from 'lucide-react';
+import { SecurityUtils } from '../lib/security';
 import GlitchText from './GlitchText';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -32,7 +33,12 @@ export const Navigation: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-14 sm:h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 flex-shrink-0" onClick={closeMobileMenu}>
+          <Link 
+            to="/" 
+            className="flex items-center space-x-2 flex-shrink-0" 
+            onClick={closeMobileMenu}
+            aria-label="CyberSec Portfolio Home"
+          >
             <Shield className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-blue-600 dark:text-green-400 transition-colors duration-300" />
             <div className="hidden sm:block">
               <GlitchText 
@@ -54,6 +60,7 @@ export const Navigation: React.FC = () => {
               <div key={path} className="flex-shrink-0">
                 <Link
                   to={path}
+                  aria-label={label}
                   className={`flex items-center space-x-1 px-2 lg:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 ${
                     isActive(path) 
                       ? 'text-blue-700 dark:text-green-400 bg-blue-50 dark:bg-green-400/10 border border-blue-200 dark:border-green-400/30 shadow-sm' 
@@ -98,6 +105,7 @@ export const Navigation: React.FC = () => {
                 <Link
                   key={path}
                   to={path}
+                  aria-label={label}
                   onClick={closeMobileMenu}
                   className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm sm:text-base font-medium transition-all duration-300 ${
                     isActive(path) 

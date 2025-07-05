@@ -3,9 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FileText, Plus, LogOut, Edit, Trash2, Eye, EyeOff, Clock, AlertTriangle, BookOpen, Star, Calendar, User, TrendingUp } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase, type Profile, type Writeup, type Article } from '../../lib/supabase';
+import { errorHandler } from '../../lib/errorHandler';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import GlitchText from '../../components/GlitchText';
 import AnimatedCard from '../../components/AnimatedCard';
-import { apiCache } from '../../lib/apiCache';
 
 export default function Dashboard() {
   const { user, signOut, isSessionValid, getSessionExpiryInfo } = useAuth();
@@ -134,12 +135,10 @@ export default function Dashboard() {
 
   const handleSignOut = async () => {
     try {
-      // Clear cache on sign out
-      apiCache.clear();
       await signOut();
       navigate('/authorize');
     } catch (error) {
-      console.error('Error signing out:', error);
+      errorHandler.logError('Error signing out', error);
     }
   };
 
@@ -156,8 +155,8 @@ export default function Dashboard() {
       
       setWriteups(writeups.filter(w => w.id !== id));
     } catch (error) {
-      console.error('Error deleting writeup:', error);
-      alert('Error deleting writeup');
+      errorHandler.logError('Error deleting writeup', error);
+      alert(errorHandler.createUserFriendlyMessage(error));
     }
   };
 
@@ -174,8 +173,8 @@ export default function Dashboard() {
       
       setArticles(articles.filter(a => a.id !== id));
     } catch (error) {
-      console.error('Error deleting article:', error);
-      alert('Error deleting article');
+      errorHandler.logError('Error deleting article', error);
+      alert(errorHandler.createUserFriendlyMessage(error));
     }
   };
 
@@ -192,8 +191,8 @@ export default function Dashboard() {
         w.id === id ? { ...w, published: !published } : w
       ));
     } catch (error) {
-      console.error('Error updating writeup:', error);
-      alert('Error updating writeup');
+      errorHandler.logError('Error updating writeup', error);
+      alert(errorHandler.createUserFriendlyMessage(error));
     }
   };
 
@@ -210,8 +209,8 @@ export default function Dashboard() {
         a.id === id ? { ...a, published: !published } : a
       ));
     } catch (error) {
-      console.error('Error updating article:', error);
-      alert('Error updating article');
+      errorHandler.logError('Error updating article', error);
+      alert(errorHandler.createUserFriendlyMessage(error));
     }
   };
 
@@ -228,8 +227,8 @@ export default function Dashboard() {
         a.id === id ? { ...a, featured: !featured } : a
       ));
     } catch (error) {
-      console.error('Error updating article:', error);
-      alert('Error updating article');
+      errorHandler.logError('Error updating article', error);
+      alert(errorHandler.createUserFriendlyMessage(error));
     }
   };
 
@@ -276,10 +275,9 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-white flex items-center justify-center px-4 transition-colors duration-300">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-600 dark:border-green-400 mx-auto mb-4 transition-colors duration-300"></div>
-          <p className="text-blue-600 dark:text-green-400 font-mono text-sm sm:text-base transition-colors duration-300">Loading dashboard...</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-white transition-colors duration-300">
+        <div className="flex items-center justify-center min-h-screen">
+          <LoadingSpinner size="lg" text="Loading dashboard..." />
         </div>
       </div>
     );

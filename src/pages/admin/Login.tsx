@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Shield, Eye, EyeOff, Lock, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { SecurityUtils } from '../../lib/security';
+import { errorHandler } from '../../lib/errorHandler';
 import GlitchText from '../../components/GlitchText';
 
 export default function Login() {
@@ -40,8 +42,8 @@ export default function Login() {
     setError('');
 
     try {
-      // Sanitize inputs
-      const sanitizedEmail = sanitizeInput(email);
+      // Validate and sanitize inputs
+      const sanitizedEmail = SecurityUtils.sanitizeInput(email);
       const sanitizedPassword = password.slice(0, 100); // Don't sanitize password content, just limit length
 
       if (!sanitizedEmail || !sanitizedPassword) {
@@ -52,11 +54,20 @@ export default function Login() {
         throw new Error('Password must be at least 6 characters');
       }
 
+      if (!SecurityUtils.isValidEmail(sanitizedEmail)) {
+        throw new Error('Please enter a valid email address');
+      }
+
       await signIn(sanitizedEmail, sanitizedPassword);
       const from = (location.state as any)?.from?.pathname || '/authorize/dashboard';
       navigate(from, { replace: true });
     } catch (error: any) {
-      setError(error.message || 'Login failed');
+      const userFriendlyMessage = errorHandler.createUserFriendlyMessage(error);
+      setError(userFriendlyMessage);
+      errorHandler.logError('Login attempt failed', error, {
+        email: sanitizedEmail,
+        timestamp: new Date().toISOString()
+      });
     } finally {
       setLoading(false);
     }
@@ -114,7 +125,7 @@ export default function Login() {
                 type="email"
                 id="email"
                 value={email}
-                onChange={(e) => setEmail(sanitizeInput(e.target.value))}
+                onChange={(e) => setEmail(SecurityUtils.sanitizeInput(e.target.value))}
                 className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 text-sm transition-colors duration-300"
                 placeholder="Enter your email"
                 maxLength={254}
