@@ -99,7 +99,7 @@ class RequestOptimizer {
     });
   }
 
-  private async processBatch(): void {
+  private async processBatch(): Promise<void> {
     const batch = [...this.batchQueue];
     this.batchQueue.length = 0;
     this.batchTimeout = null;
@@ -147,12 +147,12 @@ class RequestOptimizer {
     return `${method}:${url}:${body}`;
   }
 
-  private getFromCache<T>(key: string): T | null {
+  private getFromCache<T>(_key: string): T | null {
     // This would integrate with your cache system
     return null; // Placeholder
   }
 
-  private setCache<T>(key: string, data: T, ttl: number): void {
+  private setCache<T>(_key: string, _data: T, _ttl: number): void {
     // This would integrate with your cache system
     // Placeholder
   }
