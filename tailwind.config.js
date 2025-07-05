@@ -37,6 +37,8 @@ export default {
         'slide-up': 'slideUp 0.3s ease-out',
         'bounce-subtle': 'bounceSubtle 2s infinite',
         'glow': 'glow 2s ease-in-out infinite alternate',
+        'gradient-x': 'gradient-x 3s ease infinite',
+        'float': 'float 6s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -55,6 +57,20 @@ export default {
           '0%': { boxShadow: '0 0 5px rgba(59, 130, 246, 0.5)' },
           '100%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.8)' },
         },
+        'gradient-x': {
+          '0%, 100%': {
+            'background-size': '200% 200%',
+            'background-position': 'left center'
+          },
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'right center'
+          },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
       },
       fontFamily: {
         'mono': ['JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', 'monospace'],
@@ -72,7 +88,11 @@ export default {
       maxWidth: {
         '8xl': '88rem',
         '9xl': '96rem',
+        '10xl': '100rem',
         'screen-2xl': '1536px',
+      },
+      backdropBlur: {
+        'xs': '2px',
       },
     },
   },
