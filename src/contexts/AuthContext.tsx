@@ -129,58 +129,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Sign up functionality removed - Admin only system
   const signUp = async (email: string, password: string) => {
-    try {
-      setLoading(true);
-      
-      // Sanitize and validate inputs
-      const sanitizedEmail = sanitizeEmail(email);
-      
-      if (!sanitizedEmail || !password) {
-        throw new Error('Email and password are required');
-      }
-
-      if (password.length < 6) {
-        throw new Error('Password must be at least 6 characters');
-      }
-
-      // Email format validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(sanitizedEmail)) {
-        throw new Error('Please enter a valid email address');
-      }
-
-      const { data, error } = await supabase.auth.signUp({
-        email: sanitizedEmail,
-        password: password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-
-      if (error) {
-        // Handle specific auth errors
-        switch (error.message) {
-          case 'User already registered':
-            throw new Error('An account with this email already exists');
-          case 'Password should be at least 6 characters':
-            throw new Error('Password must be at least 6 characters');
-          default:
-            throw new Error(error.message);
-        }
-      }
-
-      if (data.user && !data.session) {
-        throw new Error('Please check your email for a confirmation link');
-      }
-
-      console.log('Sign up successful:', data.user?.email);
-    } catch (error) {
-      console.error('Sign up error:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+    throw new Error('Registration is disabled. This is an admin-only system.');
   };
 
   const signOut = async () => {

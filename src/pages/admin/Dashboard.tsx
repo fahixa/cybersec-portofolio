@@ -206,7 +206,12 @@ export default function Dashboard() {
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-600 dark:text-green-400 font-mono mb-2 transition-colors duration-300">
               <GlitchText text="ADMIN DASHBOARD" />
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base transition-colors duration-300">Welcome back, {user?.email}</p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base transition-colors duration-300">
+              Welcome back, Administrator
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-500 transition-colors duration-300">
+              Logged in as: {user?.email}
+            </p>
           </div>
           
           <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
@@ -234,7 +239,10 @@ export default function Dashboard() {
             <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" />
             <div>
               <p className="font-semibold mb-1 text-sm sm:text-base">Security Notice</p>
-              <p className="text-xs sm:text-sm">You are accessing a restricted administrative area. All actions are logged and monitored. Data is stored locally in browser storage.</p>
+              <p className="text-xs sm:text-sm">
+                You are accessing a restricted administrative area. All actions are logged and monitored. 
+                This is a single-user admin system with data stored in Supabase.
+              </p>
             </div>
           </div>
         </div>
