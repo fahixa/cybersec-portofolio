@@ -1,0 +1,43 @@
+{
+  "name": "cybersec-portfolio",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "build:fast": "vite build --mode production",
+    "build:no-typecheck": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "docker:build": "./build-docker-fast.sh",
+    "docker:run": "docker run -d -p 3000:80 --name cybersec-portfolio cybersec-portfolio:latest",
+    "docker:stop": "docker stop cybersec-portfolio && docker rm cybersec-portfolio",
+    "docker:export": "docker save cybersec-portfolio:latest > cybersec-portfolio.tar"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0",
+    "lucide-react": "^0.456.0",
+    "react-markdown": "^9.0.1",
+    "react-syntax-highlighter": "^15.5.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.13.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/react-syntax-highlighter": "^15.5.13",
+    "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.13.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.14",
+    "globals": "^15.11.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.14",
+    "typescript": "~5.6.2",
+    "typescript-eslint": "^8.11.0",
+    "vite": "^5.4.10"
+  }
+}
