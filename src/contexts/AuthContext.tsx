@@ -185,9 +185,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isSessionValid = (): boolean => {
     if (!session) return false;
     
-    // Check if session is expired
+    // Check if session is expired with more detailed validation
     const now = Math.floor(Date.now() / 1000);
-    return session.expires_at ? session.expires_at > now : true;
+    const isValid = session.expires_at ? session.expires_at > now : true;
+    
+    // Log session status for debugging
+    if (!isValid) {
+      console.log('Session expired:', {
+        expires_at: session.expires_at,
+        current_time: now,
+        time_diff: session.expires_at ? session.expires_at - now : 'no_expiry'
+      });
+    }
+    
+    return isValid;
+  };
+
+  // Add method to get session expiry info
+  const getSessionExpiryInfo = () => {
+    if (!session || !session.expires_at) return null;
+    
+    const expiresAt = session.expires_at * 1000; // Convert to milliseconds
+    const timeLeft = expiresAt - Date.now();
+    
+    return {
+      expiresAt,
+      timeLeft,
+      isExpired: timeLeft <= 0
+    };
   };
 
   const value = {
@@ -199,6 +224,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signOut,
     resetPassword,
     isSessionValid,
+    getSessionExpiryInfo,
   };
 
   return (

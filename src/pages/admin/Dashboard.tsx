@@ -7,7 +7,7 @@ import GlitchText from '../../components/GlitchText';
 import AnimatedCard from '../../components/AnimatedCard';
 
 export default function Dashboard() {
-  const { user, signOut, isSessionValid } = useAuth();
+  const { user, signOut, isSessionValid, getSessionExpiryInfo } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [writeups, setWriteups] = useState<Writeup[]>([]);
@@ -37,22 +37,41 @@ export default function Dashboard() {
   }, [user, navigate, isSessionValid]);
 
   const updateSessionTimer = () => {
-    const sessionData = localStorage.getItem('cybersec-session-data');
-    if (sessionData) {
-      try {
-        const session = JSON.parse(sessionData);
-        const timeLeft = session.expiry - Date.now();
-        
-        if (timeLeft > 0) {
-          const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-          const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-          setSessionTimeRemaining(`${hours}h ${minutes}m`);
-        } else {
-          setSessionTimeRemaining('Expired');
-          handleSignOut();
-        }
-      } catch (error) {
-        console.error('Error updating session timer:', error);
+    // Check if user session exists
+    if (!user || !isSessionValid()) {
+      setSessionTimeRemaining('Invalid');
+      return;
+    }
+
+    // Use the auth context method to get session info
+    const sessionInfo = getSessionExpiryInfo();
+    
+    if (!sessionInfo) {
+      setSessionTimeRemaining('No Expiry');
+      return;
+    }
+    
+    if (sessionInfo.isExpired) {
+      setSessionTimeRemaining('Expired');
+      handleSignOut();
+      return;
+    }
+    
+    const timeLeft = sessionInfo.timeLeft;
+    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 0) {
+      setSessionTimeRemaining(`${hours}h ${minutes}m`);
+    } else if (minutes > 0) {
+      setSessionTimeRemaining(`${minutes}m`);
+    } else {
+      const seconds = Math.floor(timeLeft / 1000);
+      if (seconds > 0) {
+        setSessionTimeRemaining(`${seconds}s`);
+      } else {
+        setSessionTimeRemaining('Expired');
+        handleSignOut();
       }
     }
   };
@@ -283,10 +302,10 @@ export default function Dashboard() {
             
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 flex-shrink-0">
               {/* Session Timer */}
-              <div className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg px-3 py-2 flex items-center space-x-2">
+              <div className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg px-3 py-2 flex items-center space-x-2 min-w-0">
                 <Clock className="w-4 h-4" />
-                <span className="text-xs sm:text-sm font-mono">
-                  Session: {sessionTimeRemaining}
+                <span className="text-xs sm:text-sm font-mono whitespace-nowrap">
+                  Session: {sessionTimeRemaining || 'Loading...'}
                 </span>
               </div>
               
