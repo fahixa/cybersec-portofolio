@@ -427,17 +427,35 @@ export default function ProfileEdit() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">
                 Experience
               </label>
+              <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-500/30 rounded-lg">
+                <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-2">Format Guidelines:</h4>
+                <div className="text-xs text-blue-600 dark:text-blue-300 space-y-1">
+                  <p><strong>Position Title - Company Name - Date Range</strong></p>
+                  <p>• Responsibility 1</p>
+                  <p>• Responsibility 2</p>
+                  <p>• Responsibility 3</p>
+                  <p className="mt-2 italic">Leave empty line between different positions</p>
+                </div>
+              </div>
               <textarea
                 value={formData.experience}
                 onChange={(e) => setFormData({ ...formData, experience: sanitizeInput(e.target.value) })}
-                rows={15}
+                rows={20}
                 className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 text-sm sm:text-base transition-all duration-300"
-                placeholder="Enter your professional experience here. You can use line breaks to separate different positions and experiences."
+                placeholder="Security Analyst - Defenxor (PT. Defender Nusa Semesta) - May 2024 to Present
+• Monitor 12+ customer security appliances in real-time
+• Escalate critical incidents to internal teams and clients
+• Generate daily reports and monthly threat intelligence summaries
+
+Head of Laboratory Assistant - Security Laboratory (SECULAB) - Jun 2023 to Jun 2024
+• Coordinated laboratory assistants ensuring efficient operations
+• Supervised practical teaching processes and courses"
                 maxLength={5000}
               />
-              <p className="text-xs text-gray-500 dark:text-gray-400 transition-colors duration-300">
-                You can format your experience with line breaks. Each line will be displayed as a separate line on your profile.
-              </p>
+              <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 transition-colors duration-300">
+                <span>Use the format above for best results. Each position should be separated by an empty line.</span>
+                <span>{formData.experience.length}/5000 characters</span>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mt-4 sm:mt-6">

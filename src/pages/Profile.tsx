@@ -176,17 +176,78 @@ export default function ProfilePage() {
 
             <AnimatedCard glowColor="purple">
               <h3 className="text-lg sm:text-xl font-bold text-purple-600 dark:text-purple-400 font-mono mb-4 transition-colors duration-300">Experience</h3>
-              {displayProfile.experience ? (
-                <div className="prose prose-gray dark:prose-invert max-w-none">
-                  <div className="whitespace-pre-line text-gray-700 dark:text-gray-300 leading-relaxed text-sm sm:text-base transition-colors duration-300">
-                    {displayProfile.experience}
+              <div className="space-y-6">
+                {displayProfile.experience ? (
+                  (() => {
+                    // Parse experience data into structured format
+                    const experiences = displayProfile.experience.split('\n\n').filter(exp => exp.trim());
+                    
+                    return experiences.map((experience, index) => {
+                      const lines = experience.split('\n').filter(line => line.trim());
+                      if (lines.length === 0) return null;
+                      
+                      const titleLine = lines[0];
+                      const responsibilities = lines.slice(1).filter(line => line.startsWith('•'));
+                      
+                      // Extract title, company, and date from title line
+                      const titleParts = titleLine.split(' - ');
+                      const position = titleParts[0] || '';
+                      const company = titleParts[1] || '';
+                      const dateRange = titleParts[titleParts.length - 1] || '';
+                      
+                      return (
+                        <div key={index} className="relative pl-6 border-l-2 border-purple-200 dark:border-purple-500/30 last:border-l-0">
+                          {/* Timeline dot */}
+                          <div className="absolute -left-2 top-0 w-4 h-4 bg-purple-600 dark:bg-purple-400 rounded-full border-2 border-white dark:border-gray-900"></div>
+                          
+                          {/* Content */}
+                          <div className="pb-6 last:pb-0">
+                            {/* Position and Date */}
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2">
+                              <h4 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white transition-colors duration-300">
+                                {position}
+                              </h4>
+                              <span className="text-xs sm:text-sm px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full border border-purple-200 dark:border-purple-500/30 transition-colors duration-300 self-start sm:self-auto">
+                                {dateRange}
+                              </span>
+                            </div>
+                            
+                            {/* Company */}
+                            {company && (
+                              <p className="text-sm sm:text-base text-purple-600 dark:text-purple-400 font-medium mb-3 transition-colors duration-300">
+                                {company}
+                              </p>
+                            )}
+                            
+                            {/* Responsibilities */}
+                            {responsibilities.length > 0 && (
+                              <ul className="space-y-2">
+                                {responsibilities.map((responsibility, respIndex) => (
+                                  <li key={respIndex} className="flex items-start text-sm sm:text-base text-gray-700 dark:text-gray-300 transition-colors duration-300">
+                                    <span className="text-purple-600 dark:text-purple-400 mr-3 mt-1 flex-shrink-0">•</span>
+                                    <span className="leading-relaxed">{responsibility.substring(1).trim()}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-8 h-8 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6" />
+                      </svg>
+                    </div>
+                    <p className="text-gray-500 dark:text-gray-500 text-sm sm:text-base transition-colors duration-300">
+                      No experience information available.
+                    </p>
                   </div>
-                </div>
-              ) : (
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm sm:text-base transition-colors duration-300">
-                  No experience information available.
-                </p>
-              )}
+                )}
+              </div>
             </AnimatedCard>
 
             <AnimatedCard>
