@@ -61,11 +61,17 @@ export default function Dashboard() {
   const loadData = async () => {
     try {
       // Load profile
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .single();
-      setProfile(profileData);
+        .eq('user_id', user!.id)
+        .maybeSingle();
+      
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error('Error loading profile:', profileError);
+      } else {
+        setProfile(profileData);
+      }
 
       // Load writeups
       const { data: writeupsData } = await supabase

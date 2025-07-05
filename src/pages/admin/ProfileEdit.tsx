@@ -47,7 +47,8 @@ export default function ProfileEdit() {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .single();
+        .eq('user_id', user!.id)
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading profile:', error);
