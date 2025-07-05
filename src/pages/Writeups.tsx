@@ -15,6 +15,7 @@ export default function Writeups() {
 
   useEffect(() => {
     loadWriteups();
+  });
 
   // Use optimized data fetching
   const { data: writeups = [], loading } = useWriteups({ 
