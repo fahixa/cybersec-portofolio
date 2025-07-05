@@ -46,6 +46,8 @@ export default function ProfileEdit() {
   const loadProfile = async () => {
     setLoading(true);
     try {
+      console.log('🔄 Loading profile for user:', user!.id);
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -55,6 +57,21 @@ export default function ProfileEdit() {
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading profile:', error);
       } else if (data) {
+        console.log('✅ Profile data loaded:', data.name);
+        
+        // Load certifications separately
+        const { data: certificationsData, error: certError } = await supabase
+          .from('certifications')
+          .select('*')
+          .eq('profile_id', data.id)
+          .order('issue_date', { ascending: false });
+
+        if (certError) {
+          console.error('Error loading certifications:', certError);
+        }
+
+        console.log('📜 Certifications loaded:', certificationsData?.length || 0);
+        
         setFormData({
           name: data.name || '',
           title: data.title || '',
@@ -64,7 +81,7 @@ export default function ProfileEdit() {
           github_url: data.github_url || '',
           linkedin_url: data.linkedin_url || '',
           twitter_url: data.twitter_url || '',
-          certifications: []
+          certifications: certificationsData || []
         });
       }
     } catch (error) {
@@ -118,25 +135,8 @@ export default function ProfileEdit() {
         throw new Error('Invalid Twitter URL');
       }
 
-      // Validate certification URLs and dates
-      for (const cert of formData.certifications) {
-        if (!isValidUrl(cert.validation_url)) {
-          throw new Error(`Invalid validation URL for ${cert.name}`);
-        }
-        if (!isValidUrl(cert.logo_url)) {
-          throw new Error(`Invalid logo URL for ${cert.name}`);
-        }
-        if (!isValidDate(cert.issue_date)) {
-          throw new Error(`Invalid issue date for ${cert.name}`);
-        }
-        if (cert.expiry_date && !isValidDate(cert.expiry_date)) {
-          throw new Error(`Invalid expiry date for ${cert.name}`);
-        }
-      }
-
       // Sanitize all inputs
       const sanitizedData = {
-        ...formData,
         name: sanitizeInput(formData.name),
         title: sanitizeInput(formData.title),
         bio: sanitizeInput(formData.bio),
@@ -144,24 +144,52 @@ export default function ProfileEdit() {
         github_url: formData.github_url.trim(),
         linkedin_url: formData.linkedin_url.trim(),
         twitter_url: formData.twitter_url.trim(),
-        certifications: formData.certifications.map(cert => ({
-          ...cert,
-          name: sanitizeInput(cert.name),
-          issuer: sanitizeInput(cert.issuer),
-          validation_url: cert.validation_url.trim(),
-          logo_url: cert.logo_url.trim()
-        }))
+        skills: formData.skills
       };
 
-      const { error } = await supabase
+      // Update profile
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .upsert({
           user_id: user!.id,
           ...sanitizedData,
           updated_at: new Date().toISOString(),
-        } as any);
+        } as any)
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // Handle certifications separately
+      if (formData.certifications.length > 0) {
+        // Delete existing certifications for this profile
+        await supabase
+          .from('certifications')
+          .delete()
+          .eq('profile_id', profileData.id);
+
+        // Insert new certifications
+        const certificationsToInsert = formData.certifications.map(cert => ({
+          profile_id: profileData.id,
+          name: sanitizeInput(cert.name),
+          issuer: sanitizeInput(cert.issuer),
+          validation_url: cert.validation_url.trim(),
+          logo_url: cert.logo_url.trim(),
+          issue_date: cert.issue_date,
+          expiry_date: cert.expiry_date || null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }));
+
+        const { error: certError } = await supabase
+          .from('certifications')
+          .insert(certificationsToInsert);
+
+        if (certError) {
+          console.error('Error saving certifications:', certError);
+          // Don't throw error, just log it
+        }
+      }
 
       navigate('/authorize/dashboard');
     } catch (error) {

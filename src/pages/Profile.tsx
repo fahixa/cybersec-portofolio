@@ -29,6 +29,7 @@ export default function ProfilePage() {
       setProfile(profileData);
       
       if (profileData) {
+        console.log('📜 Setting certifications:', profileData.certifications?.length || 0);
         setCertifications(profileData.certifications || []);
       }
     } catch (error) {

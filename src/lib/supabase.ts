@@ -130,30 +130,53 @@ export class SupabaseService {
       
       let query = supabase
         .from('profiles')
-        .select(`
-          *,
-          certifications (*)
-        `);
+        .select('*');
 
       if (userId) {
         query = query.eq('user_id', userId);
       }
 
-      const { data, error } = await query.limit(1);
+      const { data: profileData, error: profileError } = await query.limit(1);
 
-      if (error) {
-        console.error('❌ Profile fetch error:', error.message);
-        console.error('Error details:', error);
-        if (error.code === 'PGRST116' || error.message.includes('No rows')) {
+      if (profileError) {
+        console.error('❌ Profile fetch error:', profileError.message);
+        console.error('Error details:', profileError);
+        if (profileError.code === 'PGRST116' || profileError.message.includes('No rows')) {
           console.log('ℹ️ No profile found');
           return null;
         }
-        throw new SupabaseError('Failed to fetch profile', error);
+        throw new SupabaseError('Failed to fetch profile', profileError);
       }
 
-      const profile = Array.isArray(data) ? data[0] : data;
-      console.log('✅ Profile loaded successfully:', profile?.name);
-      return profile || null;
+      const profile = Array.isArray(profileData) ? profileData[0] : profileData;
+      
+      if (!profile) {
+        console.log('ℹ️ No profile found');
+        return null;
+      }
+
+      // Fetch certifications separately
+      console.log('🔄 Fetching certifications for profile:', profile.id);
+      const { data: certificationsData, error: certificationsError } = await supabase
+        .from('certifications')
+        .select('*')
+        .eq('profile_id', profile.id)
+        .order('issue_date', { ascending: false });
+
+      if (certificationsError) {
+        console.error('❌ Certifications fetch error:', certificationsError.message);
+        // Don't throw error, just log it and continue without certifications
+      }
+
+      const profileWithCertifications = {
+        ...profile,
+        certifications: certificationsData || []
+      };
+
+      console.log('✅ Profile loaded successfully:', profileWithCertifications.name);
+      console.log('📜 Certifications loaded:', certificationsData?.length || 0);
+      
+      return profileWithCertifications;
     } catch (error) {
       console.error('❌ Error fetching profile:', error);
       return null;
