@@ -182,38 +182,61 @@ export default function ProfilePage() {
                   const titleLine = lines[0];
                   const details = lines.slice(1);
                   
-                  // Parse title line to extract position, company, and dates
-                  const titleParts = titleLine.split(' - ');
-                  const position = titleParts[0];
-                  const companyAndDates = titleParts.slice(1).join(' - ');
-                  const lastDashIndex = companyAndDates.lastIndexOf(' - ');
-                  const company = lastDashIndex > 0 ? companyAndDates.substring(0, lastDashIndex) : companyAndDates;
-                  const dates = lastDashIndex > 0 ? companyAndDates.substring(lastDashIndex + 3) : '';
+                  // Enhanced parsing for better format handling
+                  const dashIndices = [];
+                  let searchIndex = 0;
+                  while ((searchIndex = titleLine.indexOf(' - ', searchIndex)) !== -1) {
+                    dashIndices.push(searchIndex);
+                    searchIndex += 3;
+                  }
+                  
+                  let position = '';
+                  let company = '';
+                  let dates = '';
+                  
+                  if (dashIndices.length >= 2) {
+                    position = titleLine.substring(0, dashIndices[0]);
+                    company = titleLine.substring(dashIndices[0] + 3, dashIndices[dashIndices.length - 1]);
+                    dates = titleLine.substring(dashIndices[dashIndices.length - 1] + 3);
+                  } else if (dashIndices.length === 1) {
+                    position = titleLine.substring(0, dashIndices[0]);
+                    const remainder = titleLine.substring(dashIndices[0] + 3);
+                    // Try to detect if remainder contains dates
+                    if (remainder.match(/\d{4}|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec/)) {
+                      dates = remainder;
+                    } else {
+                      company = remainder;
+                    }
+                  } else {
+                    position = titleLine;
+                  }
                   
                   return (
                     <div key={index} className="relative pl-6 pb-6 last:pb-0">
                       {/* Timeline line */}
                       {index < displayProfile.experience.split('\n\n').length - 1 && (
-                        <div className="absolute left-2 top-8 bottom-0 w-0.5 bg-gradient-to-b from-purple-400 to-purple-200 dark:from-purple-500 dark:to-purple-700"></div>
+                        <div className="absolute left-2 top-8 bottom-0 w-0.5 bg-gradient-to-b from-purple-400 via-purple-300 to-purple-200 dark:from-purple-500 dark:via-purple-600 dark:to-purple-700 opacity-60"></div>
                       )}
                       
                       {/* Timeline dot */}
-                      <div className="absolute left-0 top-2 w-4 h-4 bg-purple-500 dark:bg-purple-400 rounded-full border-2 border-white dark:border-gray-900 shadow-lg"></div>
+                      <div className="absolute left-0 top-2 w-4 h-4 bg-gradient-to-br from-purple-500 to-purple-600 dark:from-purple-400 dark:to-purple-500 rounded-full border-2 border-white dark:border-gray-900 shadow-lg ring-2 ring-purple-200 dark:ring-purple-800"></div>
                       
                       {/* Content */}
-                      <div className="bg-gray-50 dark:bg-gray-800/30 rounded-lg p-4 border border-gray-200 dark:border-gray-700/30 hover:border-purple-300 dark:hover:border-purple-500/50 transition-all duration-300 hover:shadow-md">
+                      <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/30 dark:to-gray-900/20 rounded-xl p-4 sm:p-5 border border-gray-200 dark:border-gray-700/30 hover:border-purple-300 dark:hover:border-purple-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-100 dark:hover:shadow-purple-900/20 group">
                         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
                           <div className="flex-1">
-                            <h4 className="font-bold text-gray-900 dark:text-white text-sm sm:text-base leading-tight">
+                            <h4 className="font-bold text-gray-900 dark:text-white text-sm sm:text-base leading-tight group-hover:text-purple-700 dark:group-hover:text-purple-300 transition-colors">
                               {position}
                             </h4>
-                            <p className="text-purple-600 dark:text-purple-400 font-medium text-xs sm:text-sm mt-1">
-                              {company}
-                            </p>
+                            {company && (
+                              <p className="text-purple-600 dark:text-purple-400 font-medium text-xs sm:text-sm mt-1 group-hover:text-purple-700 dark:group-hover:text-purple-300 transition-colors">
+                                {company}
+                              </p>
+                            )}
                           </div>
                           {dates && (
                             <div className="flex-shrink-0">
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30">
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-100 to-purple-200 dark:from-purple-900/30 dark:to-purple-800/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30 shadow-sm">
                                 {dates}
                               </span>
                             </div>
@@ -222,8 +245,8 @@ export default function ProfilePage() {
                         
                         <ul className="space-y-2">
                           {details.map((detail, detailIndex) => (
-                            <li key={detailIndex} className="flex items-start text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                              <div className="w-1.5 h-1.5 bg-purple-400 dark:bg-purple-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                            <li key={detailIndex} className="flex items-start text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+                              <div className="w-1.5 h-1.5 bg-gradient-to-br from-purple-400 to-purple-500 dark:from-purple-500 dark:to-purple-600 rounded-full mt-2 mr-3 flex-shrink-0 shadow-sm"></div>
                               <span>{detail.replace('• ', '')}</span>
                             </li>
                           ))}
