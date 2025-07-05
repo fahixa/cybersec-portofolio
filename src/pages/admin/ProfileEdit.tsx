@@ -304,14 +304,16 @@ export default function ProfileEdit() {
           <div className="flex items-center space-x-3">
             <button
               onClick={() => navigate('/authorize/dashboard')}
-              className="flex items-center space-x-2 text-blue-600 dark:text-green-400 hover:text-blue-500 dark:hover:text-green-300 transition-colors p-2 -ml-2 rounded-lg hover:bg-blue-50 dark:hover:bg-green-500/10"
+              className="flex items-center space-x-2 text-blue-600 dark:text-green-400 hover:text-blue-500 dark:hover:text-green-300 transition-colors p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-green-500/10 flex-shrink-0"
             >
               <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
               <span className="text-sm sm:text-base font-medium">Back</span>
             </button>
-            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600 dark:text-green-400 font-mono transition-colors duration-300">
-              <GlitchText text="EDIT PROFILE" />
-            </h1>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600 dark:text-green-400 font-mono transition-colors duration-300 truncate">
+                <GlitchText text="EDIT PROFILE" />
+              </h1>
+            </div>
           </div>
         </div>
 

@@ -79,45 +79,45 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="min-h-screen flex items-center justify-center relative overflow-hidden px-4">
+      <section className="min-h-screen flex items-center justify-center relative overflow-hidden px-4 sm:px-6 lg:px-8">
         <div className="text-center z-10 max-w-4xl w-full">
           <div className="mb-6 sm:mb-8">
             <GlitchText 
               text={profile?.name || "CYBERSEC SPECIALIST"} 
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold font-mono text-blue-600 dark:text-green-400 mb-2 sm:mb-4 block leading-tight transition-colors duration-300"
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold font-mono text-blue-600 dark:text-green-400 mb-2 sm:mb-4 block leading-tight transition-colors duration-300"
             />
-            <p className="text-lg sm:text-xl md:text-2xl text-gray-700 dark:text-gray-300 font-mono px-4 transition-colors duration-300">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 dark:text-gray-300 font-mono px-2 sm:px-4 transition-colors duration-300">
               {profile?.title || "Penetration Tester | Bug Bounty Hunter | CTF Player"}
             </p>
           </div>
 
-          <div className="mb-8 sm:mb-12 px-4">
+          <div className="mb-8 sm:mb-12 px-2 sm:px-4">
             <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed transition-colors duration-300">
               {profile?.bio || "Securing the digital realm one vulnerability at a time. Specializing in web application security, network penetration testing, and competitive hacking."}
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-4 mb-8 sm:mb-12 px-4">
+          <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-4 mb-8 sm:mb-12 px-2 sm:px-4">
             <Link
               to="/writeups"
-              className="bg-blue-600 dark:bg-green-600 hover:bg-blue-500 dark:hover:bg-green-500 text-white dark:text-black font-bold py-3 px-4 sm:px-6 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center justify-center space-x-2 w-full sm:w-auto"
+              className="bg-blue-600 dark:bg-green-600 hover:bg-blue-500 dark:hover:bg-green-500 text-white dark:text-black font-bold py-3 px-4 sm:px-6 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center justify-center space-x-2 w-full sm:w-auto min-w-0"
             >
               <Terminal className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-sm sm:text-base">View Writeups</span>
+              <span className="text-sm sm:text-base truncate">View Writeups</span>
             </Link>
             <Link
               to="/articles"
-              className="bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-4 sm:px-6 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center justify-center space-x-2 w-full sm:w-auto"
+              className="bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-4 sm:px-6 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center justify-center space-x-2 w-full sm:w-auto min-w-0"
             >
               <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-sm sm:text-base">Read Articles</span>
+              <span className="text-sm sm:text-base truncate">Read Articles</span>
             </Link>
             <Link
               to="/profile"
-              className="border border-blue-500 dark:border-green-500 text-blue-600 dark:text-green-400 hover:bg-blue-500 dark:hover:bg-green-500 hover:text-white dark:hover:text-black font-bold py-3 px-4 sm:px-6 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center justify-center space-x-2 w-full sm:w-auto"
+              className="border border-blue-500 dark:border-green-500 text-blue-600 dark:text-green-400 hover:bg-blue-500 dark:hover:bg-green-500 hover:text-white dark:hover:text-black font-bold py-3 px-4 sm:px-6 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center justify-center space-x-2 w-full sm:w-auto min-w-0"
             >
               <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-sm sm:text-base">About Me</span>
+              <span className="text-sm sm:text-base truncate">About Me</span>
             </Link>
           </div>
 
@@ -168,10 +168,10 @@ export default function Home() {
       </section>
 
       {/* Content Section */}
-      <section id="content" className="py-12 sm:py-20 relative z-10">
+      <section id="content" className="py-8 sm:py-12 lg:py-20 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-600 dark:text-green-400 font-mono mb-4 transition-colors duration-300">
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-blue-600 dark:text-green-400 font-mono mb-4 transition-colors duration-300">
               <GlitchText text="RECENT ACTIVITIES" />
             </h2>
             <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg transition-colors duration-300">Latest writeups and featured articles</p>
@@ -194,7 +194,7 @@ export default function Home() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                 {featuredArticles.map((article) => (
-                  <AnimatedCard key={article.id} glowColor="purple" className="h-full">
+                  <AnimatedCard key={article.id} glowColor="purple" className="h-full flex flex-col">
                     <div className="flex items-center mb-3">
                       <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400 mr-2 transition-colors duration-300" />
                       <span className="text-xs px-2 py-1 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30 transition-colors duration-300">
@@ -202,8 +202,8 @@ export default function Home() {
                       </span>
                       <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500 ml-2 fill-current" />
                     </div>
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-3 font-mono leading-tight transition-colors duration-300">{article.title}</h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3 text-sm sm:text-base transition-colors duration-300">{article.excerpt}</p>
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-3 font-mono leading-tight transition-colors duration-300 flex-grow-0">{article.title}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3 text-sm sm:text-base transition-colors duration-300 flex-grow">{article.excerpt}</p>
                     <div className="flex flex-wrap gap-2 mb-4">
                       {article.tags.slice(0, 3).map((tag) => (
                         <span key={tag} className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded transition-colors duration-300">
@@ -211,7 +211,7 @@ export default function Home() {
                         </span>
                       ))}
                     </div>
-                    <div className="flex items-center justify-between mt-auto">
+                    <div className="flex items-center justify-between mt-auto flex-shrink-0">
                       <span className="text-xs text-gray-500 transition-colors duration-300">{article.read_time} min read</span>
                       <Link
                         to={`/articles/${article.slug}`}
@@ -240,7 +240,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
               {recentWriteups.length > 0 ? (
                 recentWriteups.map((writeup) => (
-                  <AnimatedCard key={writeup.id} glowColor="cyan" className="h-full">
+                  <AnimatedCard key={writeup.id} glowColor="cyan" className="h-full flex flex-col">
                     <div className="flex flex-wrap items-center gap-2 mb-3">
                       {writeup.category === 'ctf' ? (
                         <Terminal className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-600 dark:text-cyan-400 transition-colors duration-300" />
@@ -264,8 +264,8 @@ export default function Home() {
                         {writeup.difficulty.toUpperCase()}
                       </span>
                     </div>
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-3 font-mono leading-tight transition-colors duration-300">{writeup.title}</h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3 text-sm sm:text-base transition-colors duration-300">{writeup.excerpt}</p>
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-3 font-mono leading-tight transition-colors duration-300 flex-grow-0">{writeup.title}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3 text-sm sm:text-base transition-colors duration-300 flex-grow">{writeup.excerpt}</p>
                     <div className="flex flex-wrap gap-2 mb-4">
                       {writeup.tags.slice(0, 3).map((tag) => (
                         <span key={tag} className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded transition-colors duration-300">
@@ -275,14 +275,14 @@ export default function Home() {
                     </div>
                     <Link
                       to={`/writeups/${writeup.slug}`}
-                      className="text-blue-600 dark:text-green-400 hover:text-blue-500 dark:hover:text-green-300 font-mono text-sm flex items-center mt-auto transition-colors duration-300"
+                      className="text-blue-600 dark:text-green-400 hover:text-blue-500 dark:hover:text-green-300 font-mono text-sm flex items-center mt-auto transition-colors duration-300 flex-shrink-0"
                     >
                       Read More →
                     </Link>
                   </AnimatedCard>
                 ))
               ) : (
-                <div className="col-span-full text-center py-12">
+                <div className="col-span-full text-center py-8 sm:py-12">
                   <Terminal className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4 transition-colors duration-300" />
                   <p className="text-gray-500 dark:text-gray-500 font-mono text-sm sm:text-base transition-colors duration-300">No writeups available yet</p>
                 </div>
