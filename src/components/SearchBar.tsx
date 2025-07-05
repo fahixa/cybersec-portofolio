@@ -67,11 +67,13 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   return (
     <form onSubmit={handleSubmit} className={`relative ${className}`}>
       <div className={`relative flex items-center transition-all duration-200 ${
-        isFocused 
-          ? 'ring-2 ring-blue-500/50 dark:ring-green-500/50 border-blue-500/50 dark:border-green-500/50' 
+        isFocused
+          ? 'ring-2 ring-blue-500/50 dark:ring-green-500/50 border-blue-500/50 dark:border-green-500/50'
           : 'border-gray-300 dark:border-gray-600/30 hover:border-gray-400 dark:hover:border-gray-500/50'
       } bg-white dark:bg-gray-900/50 backdrop-blur-sm border rounded-lg overflow-hidden shadow-sm dark:shadow-none transition-colors duration-300`}>
-        <Search className="w-4 h-4 text-gray-500 dark:text-gray-400 ml-4 flex-shrink-0 transition-colors duration-300" />
+        <div className="pl-4 flex-shrink-0">
+          <Search className="w-4 h-4 text-gray-500 dark:text-gray-400 transition-colors duration-300" />
+        </div>
         <input
           ref={inputRef}
           type="text"
@@ -81,7 +83,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           placeholder={placeholder}
-          className="w-full px-4 py-3 bg-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none font-mono text-sm transition-colors duration-300"
+          className="w-full px-3 py-3 bg-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none font-mono text-sm transition-colors duration-300"
           maxLength={100}
           autoComplete="off"
           spellCheck="false"

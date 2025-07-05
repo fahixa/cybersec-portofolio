@@ -51,37 +51,40 @@ export const Navigation: React.FC = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1 lg:space-x-4 xl:space-x-6">
             {navigationItems.map(({ path, label, icon: Icon }) => (
-              <Link
-                key={path}
-                to={path}
-                className={`flex items-center space-x-1 px-2 lg:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 ${
-                  isActive(path) 
-                    ? 'text-blue-700 dark:text-green-400 bg-blue-50 dark:bg-green-400/10 border border-blue-200 dark:border-green-400/30 shadow-sm' 
-                    : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-green-400 hover:bg-gray-50 dark:hover:bg-green-400/5'
-                }`}
-              >
-                <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden lg:inline">{label}</span>
-                <span className="lg:hidden text-xs">{label.split('-')[0]}</span>
-              </Link>
+              <div key={path} className="flex-shrink-0">
+                <Link
+                  to={path}
+                  className={`flex items-center space-x-1 px-2 lg:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 ${
+                    isActive(path) 
+                      ? 'text-blue-700 dark:text-green-400 bg-blue-50 dark:bg-green-400/10 border border-blue-200 dark:border-green-400/30 shadow-sm' 
+                      : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-green-400 hover:bg-gray-50 dark:hover:bg-green-400/5'
+                  }`}
+                >
+                  <Icon className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                  <span className="hidden lg:inline truncate">{label}</span>
+                  <span className="lg:hidden text-xs truncate">{label.split('-')[0]}</span>
+                </Link>
+              </div>
             ))}
             
             {/* Theme Toggle */}
-            <ThemeToggle size="sm" />
+            <div className="flex-shrink-0">
+              <ThemeToggle size="sm" />
+            </div>
           </div>
 
           {/* Mobile Controls */}
-          <div className="md:hidden flex items-center space-x-2">
-            <ThemeToggle size="sm" />
+          <div className="md:hidden flex items-center space-x-2 flex-shrink-0">
+            <ThemeToggle size="xs" />
             <button
               onClick={toggleMobileMenu}
-              className="p-1.5 sm:p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-green-400 hover:bg-gray-50 dark:hover:bg-green-400/10 transition-colors duration-300"
+              className="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-green-400 hover:bg-gray-50 dark:hover:bg-green-400/10 transition-colors duration-300"
               aria-label="Toggle mobile menu"
             >
               {isMobileMenuOpen ? (
-                <X className="h-5 w-5 sm:h-6 sm:w-6" />
+                <X className="h-5 w-5" />
               ) : (
-                <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
+                <Menu className="h-5 w-5" />
               )}
             </button>
           </div>
