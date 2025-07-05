@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronDown, Github, Linkedin, Twitter, Terminal, Shield, Bug, BookOpen, Star } from 'lucide-react';
+import { ChevronDown, Github, Linkedin, Mail, Terminal, Shield, Bug, BookOpen, Star } from 'lucide-react';
 import GlitchText from '../components/GlitchText';
 import AnimatedCard from '../components/AnimatedCard';
 import { SupabaseService, type Profile, type Writeup, type Article } from '../lib/supabase';
@@ -144,7 +144,15 @@ export default function Home() {
                 <Linkedin className="w-5 h-5 sm:w-6 sm:h-6" />
               </a>
             )}
-            {profile?.twitter_url && isValidUrl(profile.twitter_url) && (
+            <a 
+              href="mailto:fakhrityhikmawan@gmail.com"
+              className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-green-400 transition-colors duration-300"
+              aria-label="Send Email"
+            >
+              <Mail className="w-5 h-5 sm:w-6 sm:h-6" />
+            </a>
+            {/* Keep Twitter URL field for backward compatibility but don't display if it exists */}
+            {profile?.twitter_url && false && (
               <a 
                 href={profile.twitter_url} 
                 target="_blank"
@@ -152,7 +160,7 @@ export default function Home() {
                 className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-green-400 transition-colors duration-300"
                 aria-label="Twitter Profile"
               >
-                <Twitter className="w-5 h-5 sm:w-6 sm:h-6" />
+                <Mail className="w-5 h-5 sm:w-6 sm:h-6" />
               </a>
             )}
           </div>

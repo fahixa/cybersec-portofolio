@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Github, Linkedin, Twitter, MapPin, Calendar, Award, ExternalLink } from 'lucide-react';
+import { Github, Linkedin, Mail, MapPin, Calendar, Award, ExternalLink } from 'lucide-react';
 import GlitchText from '../components/GlitchText';
 import AnimatedCard from '../components/AnimatedCard';
 import { SupabaseService, type Profile, type Certification } from '../lib/supabase';
@@ -145,7 +145,15 @@ export default function ProfilePage() {
                     <Linkedin className="w-4 h-4 sm:w-5 sm:h-5" />
                   </a>
                 )}
-                {profile?.twitter_url && isValidUrl(profile.twitter_url) && (
+                <a 
+                  href="mailto:fakhrityhikmawan@gmail.com"
+                  className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-green-400 transition-colors"
+                  aria-label="Send Email"
+                >
+                  <Mail className="w-4 h-4 sm:w-5 sm:h-5" />
+                </a>
+                {/* Keep Twitter URL field for backward compatibility but don't display */}
+                {profile?.twitter_url && false && (
                   <a 
                     href={profile.twitter_url} 
                     target="_blank"
@@ -153,7 +161,7 @@ export default function ProfilePage() {
                     className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-green-400 transition-colors"
                     aria-label="Twitter Profile"
                   >
-                    <Twitter className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <Mail className="w-4 h-4 sm:w-5 sm:h-5" />
                   </a>
                 )}
               </div>
