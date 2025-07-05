@@ -174,13 +174,23 @@ export const ArticleDetail: React.FC = () => {
                       style={tomorrow as any}
                       language={match[1]}
                       PreTag="div"
-                      className="rounded-lg border border-gray-300 dark:border-gray-600/30"
+                      className="rounded-lg border border-gray-300 dark:border-gray-600/30 my-6 overflow-x-auto shadow-sm"
+                      customStyle={{
+                        backgroundColor: 'transparent',
+                        padding: '1.5rem',
+                        fontSize: '0.875rem',
+                        lineHeight: '1.6',
+                        fontFamily: 'JetBrains Mono, Fira Code, Consolas, Monaco, monospace',
+                        border: 'none'
+                      }}
+                      wrapLines={true}
+                      wrapLongLines={true}
                       {...props}
                     >
                       {String(children).replace(/\n$/, '')}
                     </SyntaxHighlighter>
                   ) : (
-                    <code className="bg-gray-100 dark:bg-gray-800/50 px-2 py-1 rounded text-blue-600 dark:text-green-400 border border-gray-300 dark:border-gray-600/30 transition-colors duration-300" {...props}>
+                    <code className="bg-gray-100 dark:bg-gray-800/80 px-3 py-1.5 rounded-md text-blue-600 dark:text-green-400 border border-gray-300 dark:border-gray-600/30 transition-colors duration-300 font-mono text-sm font-medium" {...props}>
                       {children}
                     </code>
                   );

@@ -1,3 +1,66 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom CSS variables for code blocks */
+:root {
+  --code-bg: #f8fafc;
+}
+
+.dark {
+  --code-bg: #1e293b;
+}
+
+/* Improve code block styling */
+pre[class*="language-"] {
+  background: var(--code-bg) !important;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(209 213 219 / 0.3);
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+}
+
+.dark pre[class*="language-"] {
+  border-color: rgb(75 85 99 / 0.3);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+}
+
+/* Improve inline code styling */
+code:not([class*="language-"]) {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace !important;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+/* Better scrollbar for code blocks */
+pre[class*="language-"]::-webkit-scrollbar {
+  height: 8px;
+}
+
+pre[class*="language-"]::-webkit-scrollbar-track {
+  background: rgb(243 244 246);
+  border-radius: 4px;
+}
+
+.dark pre[class*="language-"]::-webkit-scrollbar-track {
+  background: rgb(31 41 55);
+}
+
+pre[class*="language-"]::-webkit-scrollbar-thumb {
+  background: rgb(156 163 175);
+  border-radius: 4px;
+}
+
+.dark pre[class*="language-"]::-webkit-scrollbar-thumb {
+  background: rgb(75 85 99);
+}
+
+pre[class*="language-"]::-webkit-scrollbar-thumb:hover {
+  background: rgb(107 114 128);
+}
+
+.dark pre[class*="language-"]::-webkit-scrollbar-thumb:hover {
+  background: rgb(107 114 128);
+}
