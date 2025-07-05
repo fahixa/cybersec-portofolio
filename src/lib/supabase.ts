@@ -73,7 +73,7 @@ export class SupabaseService {
   static async testConnection(): Promise<boolean> {
     try {
       console.log('🔄 Testing Supabase connection...');
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('profiles')
         .select('id')
         .limit(1);
@@ -187,7 +187,7 @@ export class SupabaseService {
 
       const { data, error } = await supabase
         .from('profiles')
-        .upsert(sanitizedData)
+        .upsert(sanitizedData, { onConflict: 'user_id' })
         .select()
         .single();
 

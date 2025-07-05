@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import { Bold, Italic, Code, Link, Image, List, ListOrdered, Quote, Eye, EyeOff } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import type { CodeProps } from 'react-markdown/lib/ast-to-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
@@ -175,7 +174,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           <div className="p-4 prose prose-invert prose-green max-w-none">
             <ReactMarkdown
               components={{
-                code({className, children, node, inline, ...props}: CodeProps) {
+                code({className, children, node, inline, ...props}: any) {
                   const match = /language-(\w+)/.exec(className || '');
                   const isInlineCode = inline;
                   
