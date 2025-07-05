@@ -24,21 +24,34 @@
 }
 
 /* Enhanced editor styling */
-.markdown-editor textarea {
-  background-color: var(--editor-bg) !important;
-  color: var(--editor-text) !important;
-  border: 1px solid var(--editor-border) !important;
+.markdown-editor {
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: #ffffff;
   transition: all 0.2s ease;
 }
 
-.markdown-editor textarea:focus {
-  border-color: #3b82f6 !important;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+.dark .markdown-editor {
+  border-color: #374151;
+  background-color: #1f2937;
 }
 
-.dark .markdown-editor textarea:focus {
-  border-color: #10b981 !important;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+.markdown-editor:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.dark .markdown-editor:focus-within {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.markdown-editor textarea {
+  background-color: var(--editor-bg) !important;
+  color: var(--editor-text) !important;
+  border: none !important;
+  transition: all 0.2s ease;
 }
 
 /* Better scrollbar for editor */
