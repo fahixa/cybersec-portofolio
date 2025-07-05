@@ -10,7 +10,6 @@ export default function ProfileEdit() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [showMobilePreview, setShowMobilePreview] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     title: '',

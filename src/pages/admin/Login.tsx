@@ -25,16 +25,6 @@ export default function Login() {
     }
   }, [user, navigate, location]);
 
-  // Secure input sanitization
-  const sanitizeInput = (input: string): string => {
-    return input
-      .replace(/[<>]/g, '') // Remove angle brackets
-      .replace(/javascript:/gi, '') // Remove javascript: protocol
-      .replace(/on\w+=/gi, '') // Remove event handlers
-      .replace(/script/gi, '') // Remove script tags
-      .trim();
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     

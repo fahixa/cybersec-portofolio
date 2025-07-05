@@ -11,6 +11,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   isSessionValid: () => boolean;
+  getSessionExpiryInfo: () => { expiresAt: number; timeLeft: number; isExpired: boolean } | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
