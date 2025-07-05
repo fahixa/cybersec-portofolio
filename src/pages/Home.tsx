@@ -80,7 +80,7 @@ export default function Home() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="min-h-screen flex items-center justify-center relative overflow-hidden">
-        {/* Premium Background Effects */}
+        {/* Background Effects */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-900 dark:from-black dark:via-green-900/10 dark:to-black"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)] dark:bg-[radial-gradient(circle_at_50%_50%,rgba(16,185,129,0.1),transparent_50%)]"></div>
         
@@ -93,16 +93,16 @@ export default function Home() {
         {/* Main Content Container */}
         <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
           <div className="text-center">
-            {/* Premium Badge */}
+            {/* Badge */}
             <div className="inline-flex items-center px-4 py-2 mb-8 bg-white/10 dark:bg-white/5 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-full text-sm font-medium text-blue-600 dark:text-green-400 shadow-lg">
               <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
               Available for Cybersecurity Projects
             </div>
 
-            {/* Main Title with Enhanced Typography */}
+            {/* Main Title */}
             <div className="mb-6 sm:mb-8">
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black mb-4 sm:mb-6 leading-none">
-                <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 dark:from-green-400 dark:via-cyan-400 dark:to-green-600 bg-clip-text text-transparent animate-gradient-x">
+                <span className="text-blue-600 dark:text-green-400">
                   <GlitchText text={profile?.name || "Fakhri Tyhikmawan"} />
                 </span>
               </h1>
@@ -115,14 +115,14 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Enhanced Bio Section */}
+            {/* Bio Section */}
             <div className="mb-10 sm:mb-14 max-w-4xl mx-auto">
               <p className="text-lg sm:text-xl md:text-2xl text-gray-600 dark:text-gray-300 leading-relaxed font-light tracking-wide">
                 {profile?.bio || "Cyber Security Analyst with a Bachelor's in Computer Engineering from Telkom University. Experienced in real-time security monitoring, threat analysis, and implementing defense strategies at PT. Defender Nusa Semesta (Defenxor). Skilled in Microsoft Defender, Azure security, and compliance management. Focused on optimizing web applications and collaborating in team-driven environments."}
               </p>
             </div>
 
-            {/* Premium Action Buttons */}
+            {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-12 sm:mb-16">
               <Link
                 to="/writeups"
@@ -151,7 +151,7 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* Enhanced Social Links */}
+            {/* Social Links */}
             <div className="flex justify-center items-center space-x-8">
               {profile?.github_url && isValidUrl(profile.github_url) && (
                 <a 
@@ -189,9 +189,8 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Enhanced Scroll Indicator */}
+        {/* Scroll Indicator - Removed text */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
-          <div className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-medium tracking-wider uppercase">Scroll Down</div>
           <button
             onClick={scrollToContent}
             className="group p-3 bg-white/10 dark:bg-white/5 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-full hover:bg-white/20 dark:hover:bg-white/10 transition-all duration-300 hover:scale-110"
