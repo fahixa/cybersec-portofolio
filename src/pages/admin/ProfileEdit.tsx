@@ -430,31 +430,44 @@ export default function ProfileEdit() {
               <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-500/30 rounded-lg">
                 <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-2">Format Guidelines:</h4>
                 <div className="text-xs text-blue-600 dark:text-blue-300 space-y-1">
-                  <p><strong>Position Title - Company Name - Date Range</strong></p>
-                  <p>• Responsibility 1</p>
-                  <p>• Responsibility 2</p>
-                  <p>• Responsibility 3</p>
-                  <p className="mt-2 italic">Leave empty line between different positions. Each position will be displayed as a modern timeline card.</p>
+                  <div className="bg-white/50 dark:bg-black/20 p-3 rounded border-l-4 border-blue-400 font-mono text-xs">
+                    <p className="font-bold text-blue-800 dark:text-blue-300">Security Analyst - Defenxor (PT. Defender Nusa Semesta) - May 2024 to Present</p>
+                    <p className="text-blue-700 dark:text-blue-400">• Monitor 12+ customer security appliances in real-time</p>
+                    <p className="text-blue-700 dark:text-blue-400">• Escalate critical incidents to internal teams</p>
+                    <p className="text-blue-700 dark:text-blue-400">• Generate daily reports and monthly summaries</p>
+                    <p className="mt-2 text-blue-600 dark:text-blue-500">[Empty line here]</p>
+                    <p className="font-bold text-blue-800 dark:text-blue-300">Next Position - Company - Date Range</p>
+                    <p className="text-blue-700 dark:text-blue-400">• Responsibility 1</p>
+                  </div>
+                  <p className="mt-3 italic text-blue-600 dark:text-blue-400">
+                    <strong>Important:</strong> Use exactly this format. Leave empty line between positions. Each will be displayed as a professional timeline card.
+                  </p>
                 </div>
               </div>
               <textarea
                 value={formData.experience}
                 onChange={(e) => setFormData({ ...formData, experience: sanitizeInput(e.target.value) })}
-                rows={20}
+                rows={25}
                 className="w-full px-3 py-2 bg-white dark:bg-black/40 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-green-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-green-500 text-sm sm:text-base transition-all duration-300"
                 placeholder="Security Analyst - Defenxor (PT. Defender Nusa Semesta) - May 2024 to Present
-• Monitor 12+ customer security appliances in real-time
-• Escalate critical incidents to internal teams and clients
-• Generate daily reports and monthly threat intelligence summaries
+• Monitor 12+ customer security appliances in real-time ensuring continuous threat visibility
+• Escalate critical incidents to internal teams and clients for swift resolution
+• Generate daily reports and monthly threat intelligence summaries with actionable recommendations
 
-Head of Laboratory Assistant - Security Laboratory (SECULAB) - Jun 2023 to Jun 2024
-• Coordinated laboratory assistants ensuring efficient operations
-• Supervised practical teaching processes and courses"
-                maxLength={5000}
+Member - Google Developer Student Clubs Telkom University - Dec 2023 to Oct 2024
+• Engaged in collaborative learning across product management, UI/UX design, machine learning, cloud computing, and web development
+• Participated in hands-on workshops including Git 101 and website development bootcamps with GCP deployment
+• Enhanced professional skills through CV optimization, LinkedIn profile building, and GitHub portfolio development
+
+Head of Laboratory Assistant - Security Laboratory (SECULAB), Telkom University - Jun 2023 to Jun 2024
+• Coordinated laboratory assistants ensuring efficient task management and smooth operations
+• Supervised practical teaching processes and facilitated Computer System Security courses
+• Conducted study groups and research discussions fostering collaborative learning environment"
+                maxLength={8000}
               />
               <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 transition-colors duration-300">
-                <span>Use the format above for best results. Each position will be displayed as a professional timeline card.</span>
-                <span>{formData.experience.length}/5000 characters</span>
+                <span>Follow the exact format shown above. Each position becomes a beautiful timeline card with hover effects.</span>
+                <span>{formData.experience.length}/8000 characters</span>
               </div>
             </div>
 

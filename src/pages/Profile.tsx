@@ -176,7 +176,7 @@ export default function ProfilePage() {
 
             <AnimatedCard glowColor="purple">
               <h3 className="text-lg sm:text-xl font-bold text-purple-600 dark:text-purple-400 font-mono mb-4 transition-colors duration-300">Experience</h3>
-              <div className="space-y-6">
+              <div className="space-y-8">
                 {displayProfile.experience ? (
                   (() => {
                     // Parse experience data into structured format
@@ -199,24 +199,24 @@ export default function ProfilePage() {
                         <div key={index} className="relative">
                           {/* Timeline line - only show if not last item */}
                           {index < experiences.length - 1 && (
-                            <div className="absolute left-4 top-12 bottom-0 w-0.5 bg-gradient-to-b from-purple-400 via-purple-300 to-transparent dark:from-purple-500 dark:via-purple-600 dark:to-transparent"></div>
+                            <div className="absolute left-6 top-16 bottom-0 w-0.5 bg-gradient-to-b from-purple-400 via-purple-300 to-transparent dark:from-purple-500 dark:via-purple-600 dark:to-transparent"></div>
                           )}
                           
                           {/* Experience Card */}
-                          <div className="relative bg-gradient-to-r from-purple-50/50 to-indigo-50/50 dark:from-purple-900/20 dark:to-indigo-900/20 border border-purple-200/50 dark:border-purple-500/30 rounded-xl p-6 mb-6 hover:shadow-lg dark:hover:shadow-purple-500/10 transition-all duration-300 group">
+                          <div className="relative bg-gradient-to-br from-purple-50/80 to-indigo-50/80 dark:from-purple-900/30 dark:to-indigo-900/30 border border-purple-200/60 dark:border-purple-500/40 rounded-2xl p-6 sm:p-8 hover:shadow-xl dark:hover:shadow-purple-500/20 transition-all duration-300 group hover:scale-[1.02]">
                             {/* Timeline Dot */}
-                            <div className="absolute -left-2 top-6 w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 dark:from-purple-400 dark:to-indigo-500 rounded-full border-4 border-white dark:border-gray-900 shadow-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                              <div className="w-2 h-2 bg-white dark:bg-gray-900 rounded-full"></div>
+                            <div className="absolute -left-0 top-8 w-12 h-12 bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 dark:from-purple-400 dark:via-purple-500 dark:to-indigo-500 rounded-full border-4 border-white dark:border-gray-900 shadow-xl flex items-center justify-center group-hover:scale-110 transition-all duration-300">
+                              <div className="w-3 h-3 bg-white dark:bg-gray-900 rounded-full shadow-inner"></div>
                             </div>
                             
                             {/* Header Section */}
-                            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-4 gap-3">
-                              <div className="flex-1">
-                                <h4 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
+                            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6 gap-4 ml-16">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300 leading-tight">
                                   {position}
                                 </h4>
                                 {company && (
-                                  <p className="text-base sm:text-lg text-purple-600 dark:text-purple-400 font-semibold mb-1">
+                                  <p className="text-lg sm:text-xl text-purple-600 dark:text-purple-400 font-semibold mb-2 leading-relaxed">
                                     {company}
                                   </p>
                                 )}
@@ -224,7 +224,7 @@ export default function ProfilePage() {
                               
                               {/* Date Badge */}
                               <div className="flex-shrink-0">
-                                <span className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 dark:from-purple-400 dark:to-indigo-500 text-white dark:text-gray-900 text-sm font-semibold rounded-full shadow-md">
+                                <span className="inline-flex items-center px-5 py-3 bg-gradient-to-r from-purple-500 via-purple-600 to-indigo-600 dark:from-purple-400 dark:via-purple-500 dark:to-indigo-500 text-white dark:text-gray-900 text-sm sm:text-base font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
                                   {dateRange}
                                 </span>
                               </div>
@@ -232,13 +232,13 @@ export default function ProfilePage() {
                             
                             {/* Responsibilities */}
                             {responsibilities.length > 0 && (
-                              <div className="space-y-3">
+                              <div className="space-y-4 ml-16">
                                 {responsibilities.map((responsibility, respIndex) => (
-                                  <div key={respIndex} className="flex items-start group/item">
-                                    <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-purple-400 to-indigo-500 dark:from-purple-500 dark:to-indigo-600 rounded-full flex items-center justify-center mt-0.5 mr-4 group-hover/item:scale-110 transition-transform duration-200">
-                                      <div className="w-2 h-2 bg-white dark:bg-gray-900 rounded-full"></div>
+                                  <div key={respIndex} className="flex items-start group/item hover:bg-white/50 dark:hover:bg-black/20 rounded-lg p-3 -mx-3 transition-all duration-200">
+                                    <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-400 via-purple-500 to-indigo-500 dark:from-purple-500 dark:via-purple-600 dark:to-indigo-600 rounded-full flex items-center justify-center mt-1 mr-4 group-hover/item:scale-110 group-hover/item:rotate-12 transition-all duration-300 shadow-md">
+                                      <div className="w-2.5 h-2.5 bg-white dark:bg-gray-900 rounded-full shadow-inner"></div>
                                     </div>
-                                    <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed group-hover/item:text-gray-900 dark:group-hover/item:text-white transition-colors duration-200">
+                                    <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 leading-relaxed group-hover/item:text-gray-900 dark:group-hover/item:text-white transition-colors duration-300 font-medium">
                                       {responsibility.substring(1).trim()}
                                     </p>
                                   </div>
@@ -252,12 +252,12 @@ export default function ProfilePage() {
                   })()
                 ) : (
                   <div className="text-center py-8">
-                    <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                       <svg className="w-8 h-8 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6" />
                       </svg>
                     </div>
-                    <p className="text-gray-500 dark:text-gray-500 text-sm sm:text-base transition-colors duration-300">
+                    <p className="text-gray-500 dark:text-gray-500 text-base sm:text-lg transition-colors duration-300">
                       No experience information available.
                     </p>
                   </div>
