@@ -151,18 +151,6 @@ export default function Home() {
             >
               <Mail className="w-5 h-5 sm:w-6 sm:h-6" />
             </a>
-            {/* Keep Twitter URL field for backward compatibility but don't display if it exists */}
-            {profile?.twitter_url && false && (
-              <a 
-                href={profile.twitter_url} 
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-green-400 transition-colors duration-300"
-                aria-label="Twitter Profile"
-              >
-                <Mail className="w-5 h-5 sm:w-6 sm:h-6" />
-              </a>
-            )}
           </div>
         </div>
 

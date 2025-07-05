@@ -80,7 +80,7 @@ export default function ProfileEdit() {
           experience: data.experience || '',
           github_url: data.github_url || '',
           linkedin_url: data.linkedin_url || '',
-          email: 'fakhrityhikmawan@gmail.com', // Set default email
+          email: data.email || 'fakhrityhikmawan@gmail.com',
           certifications: certificationsData || []
         });
       }
@@ -149,8 +149,7 @@ export default function ProfileEdit() {
         experience: sanitizeInput(formData.experience),
         github_url: formData.github_url.trim(),
         linkedin_url: formData.linkedin_url.trim(),
-        // Keep twitter_url for backward compatibility but don't update it
-        twitter_url: '', // Clear any existing twitter URL
+        email: formData.email.trim(),
         skills: formData.skills
       };
 

@@ -117,6 +117,7 @@ export type Database = {
           avatar_url: string | null
           bio: string
           created_at: string
+          email: string | null
           experience: string
           github_url: string | null
           id: string
@@ -124,7 +125,6 @@ export type Database = {
           name: string
           skills: string[]
           title: string
-          twitter_url: string | null
           updated_at: string
           user_id: string
         }
@@ -132,6 +132,7 @@ export type Database = {
           avatar_url?: string | null
           bio: string
           created_at?: string
+          email?: string | null
           experience?: string
           github_url?: string | null
           id?: string
@@ -139,7 +140,6 @@ export type Database = {
           name: string
           skills?: string[]
           title: string
-          twitter_url?: string | null
           updated_at?: string
           user_id: string
         }
@@ -147,6 +147,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string
           created_at?: string
+          email?: string | null
           experience?: string
           github_url?: string | null
           id?: string
@@ -154,7 +155,6 @@ export type Database = {
           name?: string
           skills?: string[]
           title?: string
-          twitter_url?: string | null
           updated_at?: string
           user_id?: string
         }

@@ -152,18 +152,6 @@ export default function ProfilePage() {
                 >
                   <Mail className="w-4 h-4 sm:w-5 sm:h-5" />
                 </a>
-                {/* Keep Twitter URL field for backward compatibility but don't display */}
-                {profile?.twitter_url && false && (
-                  <a 
-                    href={profile.twitter_url} 
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-green-400 transition-colors"
-                    aria-label="Twitter Profile"
-                  >
-                    <Mail className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </a>
-                )}
               </div>
 
               <div className="space-y-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
