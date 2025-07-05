@@ -579,7 +579,7 @@ export default function Dashboard() {
         {/* Profile Section */}
         <div className="mt-8">
           {/* Profile Management */}
-          <div className="max-w-2xl">
+          <div>
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
