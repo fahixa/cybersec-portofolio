@@ -19,32 +19,34 @@ export default function Home() {
     try {
       setLoading(true);
       
-      // Test connection first
+      console.log('🔄 Starting data load...');
+      
+      // Test connection first with better error handling
       const connectionOk = await SupabaseService.testConnection();
       if (!connectionOk) {
-        console.warn('Supabase connection failed, using fallback data');
+        console.warn('⚠️ Supabase connection failed, using fallback data');
         setLoading(false);
         return;
       }
       
-      // Load data in parallel
+      console.log('🔄 Loading data in parallel...');
       const [profileData, writeupsData, articlesData] = await Promise.all([
         SupabaseService.getProfile(),
         SupabaseService.getWriteups({ published: true, limit: 2 }),
         SupabaseService.getArticles({ published: true, featured: true, limit: 2 })
       ]);
 
-      setProfile(profileData);
-      setRecentWriteups(writeupsData);
-      setFeaturedArticles(articlesData);
-      
-      console.log('Data loaded successfully:', {
-        profile: profileData?.name,
+      console.log('📊 Data loaded:', {
+        profile: profileData?.name || 'No profile',
         writeups: writeupsData.length,
         articles: articlesData.length
       });
+
+      setProfile(profileData);
+      setRecentWriteups(writeupsData);
+      setFeaturedArticles(articlesData);
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error('❌ Error loading data:', error);
     } finally {
       setLoading(false);
     }

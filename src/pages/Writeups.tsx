@@ -23,22 +23,21 @@ export default function Writeups() {
 
   const loadWriteups = async () => {
     try {
-      // Test connection first
+      console.log('🔄 Loading writeups...');
+      
       const connectionOk = await SupabaseService.testConnection();
       if (!connectionOk) {
-        console.warn('Supabase connection failed');
+        console.warn('⚠️ Supabase connection failed');
         setWriteups([]);
         setLoading(false);
         return;
       }
       
-      console.log('Loading writeups from Supabase...');
       const data = await SupabaseService.getWriteups({ published: true });
-      console.log('Writeups loaded:', data);
+      console.log('📊 Writeups loaded:', data.length);
       setWriteups(data);
     } catch (error) {
-      console.error('Error loading writeups:', error);
-      // Fallback to empty array if Supabase fails
+      console.error('❌ Error loading writeups:', error);
       setWriteups([]);
     } finally {
       setLoading(false);

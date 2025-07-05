@@ -5,10 +5,14 @@ import type { Database } from './database.types';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// Debug environment variables
+console.log('Supabase URL:', supabaseUrl);
+console.log('Supabase Anon Key:', supabaseAnonKey ? 'Set' : 'Missing');
+
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables');
-  console.log('VITE_SUPABASE_URL:', supabaseUrl ? 'Set' : 'Missing');
-  console.log('VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'Set' : 'Missing');
+  console.error('❌ Missing Supabase environment variables');
+  console.error('Please check your .env file');
+  throw new Error('Supabase configuration missing');
 }
 
 // Validate URL format
@@ -22,27 +26,16 @@ if (supabaseUrl) {
 
 // Create Supabase client with enhanced error handling
 export const supabase = createClient<Database>(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key',
+  supabaseUrl,
+  supabaseAnonKey,
   {
     auth: {
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: true,
-      flowType: 'pkce',
     },
     db: {
       schema: 'public',
-    },
-    global: {
-      headers: {
-        'X-Client-Info': 'cybersec-portfolio@1.0.0',
-      },
-    },
-    realtime: {
-      params: {
-        eventsPerSecond: 10,
-      },
     },
   }
 );
@@ -79,21 +72,22 @@ export class SupabaseService {
   // Connection test
   static async testConnection(): Promise<boolean> {
     try {
-      console.log('Testing Supabase connection...');
+      console.log('🔄 Testing Supabase connection...');
       const { data, error } = await supabase
         .from('profiles')
-        .select('count')
+        .select('id')
         .limit(1);
       
       if (error) {
-        console.error('Connection test failed:', error);
+        console.error('❌ Connection test failed:', error.message);
+        console.error('Error details:', error);
         return false;
       }
       
-      console.log('Supabase connection successful');
+      console.log('✅ Supabase connection successful');
       return true;
     } catch (error) {
-      console.error('Connection test error:', error);
+      console.error('❌ Connection test error:', error);
       return false;
     }
   }
@@ -132,7 +126,7 @@ export class SupabaseService {
   // Profile operations
   static async getProfile(userId?: string): Promise<Profile | null> {
     try {
-      console.log('Fetching profile from Supabase...');
+      console.log('🔄 Fetching profile from Supabase...');
       
       let query = supabase
         .from('profiles')
@@ -145,21 +139,23 @@ export class SupabaseService {
         query = query.eq('user_id', userId);
       }
 
-      const { data, error } = await query.limit(1).single();
+      const { data, error } = await query.limit(1);
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          console.log('No profile found');
+        console.error('❌ Profile fetch error:', error.message);
+        console.error('Error details:', error);
+        if (error.code === 'PGRST116' || error.message.includes('No rows')) {
+          console.log('ℹ️ No profile found');
           return null;
         }
-        console.error('Profile fetch error:', error);
         throw new SupabaseError('Failed to fetch profile', error);
       }
 
-      console.log('Profile loaded successfully:', data?.name);
-      return data;
+      const profile = Array.isArray(data) ? data[0] : data;
+      console.log('✅ Profile loaded successfully:', profile?.name);
+      return profile || null;
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('❌ Error fetching profile:', error);
       return null;
     }
   }
@@ -212,7 +208,7 @@ export class SupabaseService {
     search?: string;
   } = {}): Promise<Writeup[]> {
     try {
-      console.log('Fetching writeups from Supabase with options:', options);
+      console.log('🔄 Fetching writeups from Supabase with options:', options);
       
       let query = supabase
         .from('writeups')
@@ -229,7 +225,6 @@ export class SupabaseService {
 
       if (options.search) {
         const sanitizedSearch = this.sanitizeString(options.search);
-        // Use ilike for case-insensitive search
         query = query.or(`title.ilike.%${sanitizedSearch}%,excerpt.ilike.%${sanitizedSearch}%,content.ilike.%${sanitizedSearch}%`);
       }
 
@@ -244,21 +239,22 @@ export class SupabaseService {
       const { data, error } = await query;
 
       if (error) {
-        console.error('Writeups fetch error:', error);
+        console.error('❌ Writeups fetch error:', error.message);
+        console.error('Error details:', error);
         throw new SupabaseError('Failed to fetch writeups', error);
       }
 
-      console.log(`Fetched ${data?.length || 0} writeups`);
+      console.log(`✅ Fetched ${data?.length || 0} writeups`);
       return data || [];
     } catch (error) {
-      console.error('Error fetching writeups:', error);
+      console.error('❌ Error fetching writeups:', error);
       return [];
     }
   }
 
   static async getWriteupBySlug(slug: string): Promise<Writeup | null> {
     try {
-      console.log('Fetching writeup by slug:', slug);
+      console.log('🔄 Fetching writeup by slug:', slug);
       const sanitizedSlug = this.sanitizeString(slug);
       
       const { data, error } = await supabase
@@ -269,17 +265,18 @@ export class SupabaseService {
         .single();
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          console.log('Writeup not found for slug:', slug);
+        if (error.code === 'PGRST116' || error.message.includes('No rows')) {
+          console.log('ℹ️ Writeup not found for slug:', slug);
           return null;
         }
+        console.error('❌ Writeup fetch error:', error.message);
         throw new SupabaseError('Failed to fetch writeup', error);
       }
 
-      console.log('Writeup loaded successfully:', data?.title);
+      console.log('✅ Writeup loaded successfully:', data?.title);
       return data;
     } catch (error) {
-      console.error('Error fetching writeup by slug:', error);
+      console.error('❌ Error fetching writeup by slug:', error);
       return null;
     }
   }
@@ -338,7 +335,7 @@ export class SupabaseService {
     search?: string;
   } = {}): Promise<Article[]> {
     try {
-      console.log('Fetching articles from Supabase with options:', options);
+      console.log('🔄 Fetching articles from Supabase with options:', options);
       
       let query = supabase
         .from('articles')
@@ -359,7 +356,6 @@ export class SupabaseService {
 
       if (options.search) {
         const sanitizedSearch = this.sanitizeString(options.search);
-        // Use ilike for case-insensitive search
         query = query.or(`title.ilike.%${sanitizedSearch}%,excerpt.ilike.%${sanitizedSearch}%,content.ilike.%${sanitizedSearch}%`);
       }
 
@@ -374,21 +370,22 @@ export class SupabaseService {
       const { data, error } = await query;
 
       if (error) {
-        console.error('Articles fetch error:', error);
+        console.error('❌ Articles fetch error:', error.message);
+        console.error('Error details:', error);
         throw new SupabaseError('Failed to fetch articles', error);
       }
 
-      console.log(`Fetched ${data?.length || 0} articles`);
+      console.log(`✅ Fetched ${data?.length || 0} articles`);
       return data || [];
     } catch (error) {
-      console.error('Error fetching articles:', error);
+      console.error('❌ Error fetching articles:', error);
       return [];
     }
   }
 
   static async getArticleBySlug(slug: string): Promise<Article | null> {
     try {
-      console.log('Fetching article by slug:', slug);
+      console.log('🔄 Fetching article by slug:', slug);
       const sanitizedSlug = this.sanitizeString(slug);
       
       const { data, error } = await supabase
@@ -399,17 +396,18 @@ export class SupabaseService {
         .single();
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          console.log('Article not found for slug:', slug);
+        if (error.code === 'PGRST116' || error.message.includes('No rows')) {
+          console.log('ℹ️ Article not found for slug:', slug);
           return null;
         }
+        console.error('❌ Article fetch error:', error.message);
         throw new SupabaseError('Failed to fetch article', error);
       }
 
-      console.log('Article loaded successfully:', data?.title);
+      console.log('✅ Article loaded successfully:', data?.title);
       return data;
     } catch (error) {
-      console.error('Error fetching article by slug:', error);
+      console.error('❌ Error fetching article by slug:', error);
       return null;
     }
   }
