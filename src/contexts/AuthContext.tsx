@@ -10,6 +10,7 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  isSessionValid: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -230,6 +231,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const isSessionValid = (): boolean => {
+    if (!session) return false;
+    
+    // Check if session is expired
+    const now = Math.floor(Date.now() / 1000);
+    return session.expires_at ? session.expires_at > now : true;
+  };
+
   const value = {
     user,
     session,
@@ -238,6 +247,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     resetPassword,
+    isSessionValid,
   };
 
   return (
