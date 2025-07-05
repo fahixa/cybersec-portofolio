@@ -15,6 +15,7 @@ export default function Articles() {
 
   useEffect(() => {
     loadArticles();
+  });
 
   // Use optimized data fetching
   const { data: articles = [], loading } = useArticles({ 
